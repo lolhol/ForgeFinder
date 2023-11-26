@@ -1,0 +1,19 @@
+[
+  {
+    "modid": "${modid}",
+    "name": "Forge Finder",
+    "description": "Pathfind.",
+    "version": "${version}",
+    "mcversion": "${mcversion}",
+    "url": "https://github.com/romangraef/Forge1.8.9Template/",
+    "updateUrl": "",
+    "authorList": [
+      "Brigero",
+      "osamabeinglaggin"
+    ],
+    "credits": "",
+    "logoFile": "",
+    "screenshots": [],
+    "dependencies": []
+  }
+]
