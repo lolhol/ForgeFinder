@@ -3,14 +3,12 @@ package com.finder.calculator;
 import com.finder.calculator.config.Config;
 import com.finder.calculator.errors.NoPathException;
 import com.finder.calculator.util.Node;
-import com.finder.calculator.util.NodeUtil;
 import java.util.HashSet;
-import java.util.List;
 import java.util.PriorityQueue;
+import org.apache.commons.lang3.tuple.Triple;
 
 public class AStarPathfinder {
 
-  public List<Node> path;
   public long timeTaken = System.currentTimeMillis();
 
   public void run(Config config) throws NoPathException {
@@ -51,6 +49,13 @@ public class AStarPathfinder {
         if (!openHash.contains(n)) {
           openHash.add(n);
           openSet.add(n);
+        }
+
+        if (config.costs != null) {
+          Triple<Double, Double, Double> costs = config.costs.addCost(n);
+          n.gCost += costs.getLeft();
+          n.hCost += costs.getMiddle();
+          n.totalCost += costs.getRight();
         }
       }
 
