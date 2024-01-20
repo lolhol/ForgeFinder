@@ -14,7 +14,7 @@ public class Pathfinder {
 
   public void runAStar(Config config) {
     if (thread != null) {
-      thread.stop();
+      //thread.stop();
       thread = null;
     }
 
@@ -23,7 +23,7 @@ public class Pathfinder {
         try {
           CALCULATOR.run(config);
         } catch (NoPathException e) {
-          config.callback.finderNoPath();
+          config.callback.finderNoPath(e.nodesConsidered);
         }
       });
 

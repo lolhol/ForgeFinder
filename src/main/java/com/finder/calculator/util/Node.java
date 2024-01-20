@@ -1,7 +1,6 @@
 package com.finder.calculator.util;
 
-import com.finder.util.BlockUtil;
-import com.finder.util.MathUtil;
+import com.finder.calculator.cost.CostConst;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -16,6 +15,7 @@ public class Node extends NodeUtil implements Comparable<Node> {
 
   public Node parent;
 
+  // gCost and hCost are in milliseconds
   public double gCost;
   public double hCost;
   public double totalCost;
@@ -40,10 +40,10 @@ public class Node extends NodeUtil implements Comparable<Node> {
 
   @Override
   public int compareTo(@NotNull Node o) {
-    int compare = Double.compare(totalCost, o.totalCost);
+    int compare = Double.compare(hCost, o.hCost);
 
     if (compare == 0) {
-      int comp1 = Double.compare(hCost, o.hCost);
+      int comp1 = Double.compare(totalCost, o.totalCost);
       return comp1 == 0 ? Double.compare(gCost, o.gCost) : comp1;
     }
 
@@ -64,12 +64,16 @@ public class Node extends NodeUtil implements Comparable<Node> {
     for (int x = -1; x <= 1; x++) {
       for (int y = -1; y <= 1; y++) {
         for (int z = -1; z <= 1; z++) {
-          BlockPos bp = this.blockPos.add(x, y, z);
-          nodeList.add(makeNode(bp, this.parent, endNode));
-
+          if (x == 0 && y == 0 && z == 0) continue;
+          BlockPos bp = new BlockPos(
+            blockPos.getX() + x,
+            blockPos.getY() + y,
+            blockPos.getZ() + z
+          );
+          nodeList.add(makeNode(bp, this, endNode));
           while (getBlock(bp.down()) == Blocks.air) {
             bp = bp.down();
-            nodeList.add(makeNode(bp, this.parent, endNode));
+            nodeList.add(makeNode(bp, this, endNode));
           }
         }
       }
@@ -136,5 +140,34 @@ public class Node extends NodeUtil implements Comparable<Node> {
     Collections.reverse(retList);
 
     return retList;
+  }
+
+  public void generateCostsForNode(BlockPos endBlock, boolean[] interactions) {
+    double distanceEnd = distanceFromTo(blockPos, endBlock);
+
+    if (blocksPerSecond != 0) {
+      distanceEnd = distanceEnd / blocksPerSecond * 1000;
+    }
+
+    hCost = distanceEnd;
+
+    double yDiff = Math.abs(blockPos.getY() - parent.blockPos.getY());
+
+    if (interactions[0]) {
+      gCost +=
+        CostConst.calculateTimeToWalkOneBlock(
+          this.blocksPerSecond,
+          blockPos,
+          parent.blockPos
+        );
+    } else if (interactions[1]) {
+      gCost += (CostConst.FALL_1_25_BLOCKS_COST) * yDiff * 20 * 1000;
+    } else if (interactions[2]) {
+      gCost += CostConst.JUMP_ONE_BLOCK_COST * yDiff * 20 * 1000;
+    } else {
+      gCost = CostConst.COST_INF;
+    }
+
+    totalCost = hCost + gCost;
   }
 }

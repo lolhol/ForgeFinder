@@ -1,12 +1,7 @@
 package com.finder.calculator.util;
 
 import com.finder.util.BlockUtil;
-import com.finder.util.MathUtil;
-import com.finder.util.TimeUtil;
-import java.util.List;
-import jdk.nashorn.internal.objects.annotations.Getter;
 import net.minecraft.util.BlockPos;
-import net.minecraft.util.MathHelper;
 
 public class NodeUtil extends BlockUtil {
 
@@ -26,8 +21,9 @@ public class NodeUtil extends BlockUtil {
     return new Node(g, h, g + h, parent, block, parent.blocksPerSecond);
   }
 
-  public boolean isAbleToInteract(Node node) {
-    return canWalkOn(node) || canFall(node) || canJumpOn(node);
+  // [walk, fall, jump]
+  public boolean[] isAbleToInteract(Node node) {
+    return new boolean[] { canWalkOn(node), canFall(node), canJumpOn(node) };
   }
 
   private boolean canWalkOn(Node node) {
