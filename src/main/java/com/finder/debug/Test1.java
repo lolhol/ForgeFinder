@@ -52,7 +52,7 @@ public class Test1 {
           ForgeFinder.MC.thePlayer.getPositionVector(),
           new Vec3(ints.get(1), ints.get(2), ints.get(3)),
           10000,
-          5,
+          1,
           new Callback() {
             @Override
             public void finderDone(List<Node> path, long amtTime) {

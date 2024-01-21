@@ -40,14 +40,14 @@ public class Node extends NodeUtil implements Comparable<Node> {
 
   @Override
   public int compareTo(@NotNull Node o) {
-    int compare = Double.compare(hCost, o.hCost);
+    /*int compare = Double.compare(hCost, o.hCost);
 
     if (compare == 0) {
       int comp1 = Double.compare(totalCost, o.totalCost);
       return comp1 == 0 ? Double.compare(gCost, o.gCost) : comp1;
-    }
+    }*/
 
-    return compare;
+    return totalCost < o.totalCost ? -1 : 1;
   }
 
   public boolean isOnSide() {
@@ -161,13 +161,18 @@ public class Node extends NodeUtil implements Comparable<Node> {
           parent.blockPos
         );
     } else if (interactions[1]) {
-      gCost += (CostConst.FALL_1_25_BLOCKS_COST) * yDiff * 20 * 1000;
+      gCost += (CostConst.FALL_1_25_BLOCKS_COST) * yDiff * 1000;
     } else if (interactions[2]) {
-      gCost += CostConst.JUMP_ONE_BLOCK_COST * yDiff * 20 * 1000;
+      gCost += CostConst.JUMP_ONE_BLOCK_COST * yDiff * 1000;
     } else {
       gCost = CostConst.COST_INF;
     }
 
+    if (parent != null) {
+      gCost += parent.gCost;
+    }
+
     totalCost = hCost + gCost;
+    //ChatUtil.sendChat(String.valueOf(totalCost));
   }
 }

@@ -111,4 +111,9 @@ public class CostConst {
     double timeInSeconds = 1 / blocksPerSecond;
     return timeInSeconds * 1000;
   }
+
+  public static int getRangeFromSpeed(double blocksPerSecond) {
+    // for now this will be this
+    return (int) Math.round(Math.sqrt(blocksPerSecond));
+  }
 }

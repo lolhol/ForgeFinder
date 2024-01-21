@@ -3,6 +3,7 @@ package com.finder.calculator;
 import com.finder.calculator.config.Config;
 import com.finder.calculator.errors.NoPathException;
 import com.finder.calculator.util.Node;
+import com.finder.debug.util.RenderUtil;
 import java.util.HashSet;
 import java.util.PriorityQueue;
 import net.minecraft.util.BlockPos;
@@ -71,9 +72,16 @@ public class AStarPathfinder {
         if (!openHash.contains(n.blockPos)) {
           openHash.add(n.blockPos);
           openSet.add(n);
-          //RenderUtil.addBlockToRenderSync(n.blockPos);
+          RenderUtil.addBlockToRenderSync(n.blockPos);
         }
       }
+
+      try {
+        Thread.sleep(10);
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+
       i++;
       nodesConsidered++;
     }

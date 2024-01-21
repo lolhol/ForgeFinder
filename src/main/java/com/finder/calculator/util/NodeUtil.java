@@ -6,19 +6,7 @@ import net.minecraft.util.BlockPos;
 public class NodeUtil extends BlockUtil {
 
   public Node makeNode(BlockPos block, Node parent, Node endNode) {
-    double g =
-      getTimeReqMS(
-        parent.blocksPerSecond,
-        distanceFromTo(block, parent.blockPos)
-      ) +
-      parent.gCost;
-
-    double h = getTimeReqMS(
-      parent.blocksPerSecond,
-      distanceFromTo(endNode.blockPos, block)
-    );
-
-    return new Node(g, h, g + h, parent, block, parent.blocksPerSecond);
+    return new Node(0, 0, 0, parent, block, parent.blocksPerSecond);
   }
 
   // [walk, fall, jump]
