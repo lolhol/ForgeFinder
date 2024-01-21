@@ -50,6 +50,7 @@ public class AStarPathfinder {
       }
 
       closedSet.add(best.blockPos);
+      //RenderUtil.addBlockToRenderSync(best.blockPos);
 
       for (Node n : best.genNodesAround(config.end)) {
         if (
@@ -72,15 +73,15 @@ public class AStarPathfinder {
         if (!openHash.contains(n.blockPos)) {
           openHash.add(n.blockPos);
           openSet.add(n);
-          RenderUtil.addBlockToRenderSync(n.blockPos);
         }
+        //RenderUtil.addBlockToRenderSync(best.blockPos);
       }
 
-      try {
+      /*try {
         Thread.sleep(10);
       } catch (InterruptedException e) {
         throw new RuntimeException(e);
-      }
+      }*/
 
       i++;
       nodesConsidered++;

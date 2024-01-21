@@ -17,6 +17,7 @@ package com.finder.calculator.cost;
  * along with Baritone.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import com.finder.util.ChatUtil;
 import com.finder.util.MathUtil;
 import net.minecraft.util.BlockPos;
 
@@ -108,7 +109,7 @@ public class CostConst {
     BlockPos bp1,
     BlockPos bp2
   ) {
-    double timeInSeconds = 1 / blocksPerSecond;
+    double timeInSeconds = MATH.distanceFromToXZ(bp1, bp2) / blocksPerSecond;
     return timeInSeconds * 1000;
   }
 

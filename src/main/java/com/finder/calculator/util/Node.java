@@ -1,9 +1,14 @@
 package com.finder.calculator.util;
 
 import com.finder.calculator.cost.CostConst;
+import com.finder.debug.util.RenderUtil;
+import com.finder.util.BlockUtil;
+import com.finder.util.ChatUtil;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.Vec3;
@@ -21,6 +26,7 @@ public class Node extends NodeUtil implements Comparable<Node> {
   public double totalCost;
 
   public double blocksPerSecond;
+  public boolean isSlab = false;
 
   public Node(
     double gCost,
@@ -47,7 +53,7 @@ public class Node extends NodeUtil implements Comparable<Node> {
       return comp1 == 0 ? Double.compare(gCost, o.gCost) : comp1;
     }*/
 
-    return totalCost < o.totalCost ? -1 : 1;
+    return totalCost != o.totalCost ? totalCost < o.totalCost ? -1 : 1 : 0;
   }
 
   public boolean isOnSide() {
@@ -115,10 +121,18 @@ public class Node extends NodeUtil implements Comparable<Node> {
       centofLine.zCoord + perpNorm.zCoord
     );
     BlockPos b12 = new BlockPos(
-      centofLine.xCoord - (perpNorm.xCoord),
+      centofLine.xCoord - perpNorm.xCoord,
       centofLine.yCoord + 1,
-      centofLine.zCoord - (perpNorm.zCoord)
+      centofLine.zCoord - perpNorm.zCoord
     );
+
+    if (this.blockPos.getX() == -81 && this.blockPos.getZ() == 308) {
+      RenderUtil.addBlockToRenderSync(b01);
+      RenderUtil.addBlockToRenderSync(b02);
+      RenderUtil.addBlockToRenderSync(b11);
+      RenderUtil.addBlockToRenderSync(b12);
+      ChatUtil.sendChat("!!!!!!!!");
+    }
 
     return (
       !isBlockSolid(b01) &&
@@ -161,12 +175,41 @@ public class Node extends NodeUtil implements Comparable<Node> {
           parent.blockPos
         );
     } else if (interactions[1]) {
-      gCost += (CostConst.FALL_1_25_BLOCKS_COST) * yDiff * 1000;
+      gCost += (CostConst.FALL_1_25_BLOCKS_COST) * yDiff * 50;
     } else if (interactions[2]) {
-      gCost += CostConst.JUMP_ONE_BLOCK_COST * yDiff * 1000;
+      gCost += CostConst.JUMP_ONE_BLOCK_COST * yDiff * 50;
+      ChatUtil.sendChat(String.valueOf(gCost));
     } else {
       gCost = CostConst.COST_INF;
     }
+
+    double radius = Math.sqrt(blocksPerSecond);
+
+    Iterable<BlockPos> blocksAround = BlockPos.getAllInBox(
+      new BlockPos(
+        blockPos.getX() + radius,
+        blockPos.getY() + radius,
+        blockPos.getZ() + radius
+      ),
+      new BlockPos(
+        blockPos.getX() - radius,
+        blockPos.getY() - radius,
+        blockPos.getZ() - radius
+      )
+    );
+
+    AtomicInteger atomInt = new AtomicInteger();
+    AtomicInteger underInt = new AtomicInteger();
+    blocksAround.forEach(a -> {
+      if (isBlockSolid(a) && a.getY() >= blockPos.getY()) {
+        atomInt.incrementAndGet();
+      } else if (a.getY() < blockPos.getY() && !isBlockSolid(a)) {
+        underInt.incrementAndGet();
+      }
+    });
+
+    gCost += atomInt.get() * 20;
+    gCost += underInt.get() * 10;
 
     if (parent != null) {
       gCost += parent.gCost;

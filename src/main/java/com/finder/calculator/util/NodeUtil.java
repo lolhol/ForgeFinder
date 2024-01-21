@@ -1,6 +1,9 @@
 package com.finder.calculator.util;
 
+import com.finder.ForgeFinder;
 import com.finder.util.BlockUtil;
+import com.finder.util.ChatUtil;
+import net.minecraft.block.state.BlockState;
 import net.minecraft.util.BlockPos;
 
 public class NodeUtil extends BlockUtil {
@@ -23,13 +26,23 @@ public class NodeUtil extends BlockUtil {
     BlockPos blockAbove1 = block.add(0, 1, 0);
     BlockPos blockBelow1 = block.add(0, -1, 0);
 
+    boolean isWalkableSlab =
+      (
+        !node.isOnSide() &&
+        getBlock(blockBelow1).getRegistryName().contains("slab")
+      );
+
     if (
       yDif <= 0.001 &&
       !isBlockSolid(blockAbove1) &&
       isBlockSolid(blockBelow1) &&
-      isBlockWalkable(block)
+      (
+        (isBlockWalkable(block) || isWalkableSlab) ||
+        (node.parent != null && node.parent.isSlab)
+      )
     ) {
-      if (distanceFromToXZ(block, parent.blockPos) <= 1) {
+      node.isSlab = isWalkableSlab;
+      if (!node.isOnSide()) {
         return true;
       }
 
@@ -40,6 +53,7 @@ public class NodeUtil extends BlockUtil {
   }
 
   private boolean canJumpOn(Node node) {
+    if (node.parent != null && node.parent.isSlab) return false;
     BlockPos block = node.blockPos;
     Node parentBlock = node.parent;
     double yDiff = block.getY() - parentBlock.blockPos.getY();

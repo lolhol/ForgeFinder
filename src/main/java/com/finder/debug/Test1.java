@@ -44,6 +44,7 @@ public class Test1 {
       );
 
       RenderUtil.clearSync();
+      RenderUtil.clearLinesSync();
 
       //ChatUtil.sendChat(message);
 
@@ -82,4 +83,7 @@ public class Test1 {
     }
   }
   //./makePath -196 64 304
+  // pc:
+  //
+  //./makePath -75 63 296
 }
