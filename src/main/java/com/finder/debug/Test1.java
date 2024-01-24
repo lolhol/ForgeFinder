@@ -53,7 +53,7 @@ public class Test1 {
           ForgeFinder.MC.thePlayer.getPositionVector(),
           new Vec3(ints.get(1), ints.get(2), ints.get(3)),
           10000,
-          1,
+          5,
           new Callback() {
             @Override
             public void finderDone(List<Node> path, long amtTime) {
@@ -85,5 +85,5 @@ public class Test1 {
   //./makePath -196 64 304
   // pc:
   //
-  //./makePath -75 63 296
+  //./makePath -75 65 296
 }

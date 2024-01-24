@@ -91,7 +91,16 @@ public class Node extends NodeUtil implements Comparable<Node> {
   public boolean isClearOnSides() {
     if (this.parent == null) return false;
 
-    BlockPos blockPos = this.parent.blockPos;
+    double changeX = parent.blockPos.getX() - blockPos.getX();
+    double changeZ = parent.blockPos.getZ() - blockPos.getZ();
+
+    return (
+      !isBlockSolid(blockPos.add(0, 0, changeZ)) &&
+      !isBlockSolid(blockPos.add(changeX, 0, 0)) &&
+      !isBlockSolid(blockPos.add(0, 1, changeZ)) &&
+      !isBlockSolid(blockPos.add(changeX, 1, 0))
+    );
+    /*BlockPos blockPos = this.parent.blockPos;
 
     Vec3 perpNorm = getNormalVecBetweenVecsRev(
       fromBPToVec(this.blockPos),
@@ -139,7 +148,7 @@ public class Node extends NodeUtil implements Comparable<Node> {
       !isBlockSolid(b02) &&
       !isBlockSolid(b11) &&
       !isBlockSolid(b12)
-    );
+    );*/
   }
 
   public List<Node> makeList() {
