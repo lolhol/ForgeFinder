@@ -1,17 +1,12 @@
 package com.finder.calculator.util;
 
 import com.finder.calculator.cost.CostConst;
-import com.finder.debug.util.RenderUtil;
-import com.finder.util.BlockUtil;
-import com.finder.util.ChatUtil;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.BlockPos;
-import net.minecraft.util.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 public class Node extends NodeUtil implements Comparable<Node> {
@@ -187,7 +182,7 @@ public class Node extends NodeUtil implements Comparable<Node> {
       gCost += (CostConst.FALL_1_25_BLOCKS_COST) * yDiff * 50;
     } else if (interactions[2]) {
       gCost += CostConst.JUMP_ONE_BLOCK_COST * yDiff * 50;
-      ChatUtil.sendChat(String.valueOf(gCost));
+      //ChatUtil.sendChat(String.valueOf(gCost));
     } else {
       gCost = CostConst.COST_INF;
     }

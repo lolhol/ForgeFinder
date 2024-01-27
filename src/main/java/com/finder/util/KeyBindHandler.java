@@ -3,10 +3,12 @@ package com.finder.util;
 import com.finder.ForgeFinder;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.settings.GameSettings;
 import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.util.Vec3;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -198,5 +200,35 @@ public class KeyBindHandler {
     } else {
       KeyBinding.setKeyBindState(key.getKeyCode(), false);
     }
+  }
+
+  private static final HashMap<Integer, KeyBinding> keyBindMap =
+    new HashMap<Integer, KeyBinding>() {
+      {
+        put(0, ForgeFinder.MC.gameSettings.keyBindForward);
+        put(90, ForgeFinder.MC.gameSettings.keyBindLeft);
+        put(180, ForgeFinder.MC.gameSettings.keyBindBack);
+        put(-90, ForgeFinder.MC.gameSettings.keyBindRight);
+      }
+    };
+
+  public static HashSet<KeyBinding> getNeededKeyPresses(
+    final Vec3 from,
+    final Vec3 to
+  ) {
+    final HashSet<KeyBinding> e = new HashSet<>();
+    final RotationUtils.Rotation neededRot = RotationUtils.getNeededChange(
+      RotationUtils.getRotation(from, to)
+    );
+    final double neededYaw = neededRot.getYaw() * -1.0f;
+    keyBindMap.forEach((k, v) -> {
+      if (
+        Math.abs(k - neededYaw) < 67.5 ||
+        Math.abs(k - (neededYaw + 360.0)) < 67.5
+      ) {
+        e.add(v);
+      }
+    });
+    return e;
   }
 }
