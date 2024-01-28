@@ -1,6 +1,9 @@
 package com.finder.util;
 
 import com.finder.ForgeFinder;
+import com.finder.calculator.util.Node;
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.BlockPos;
@@ -181,5 +184,40 @@ public class BlockUtil extends MathUtil {
     }
 
     return null;
+  }
+
+  public List<Node> shortenPath(List<Node> init) {
+    List<Node> newList = new ArrayList<>();
+    //newList.add(init.get(init.size() - 1));
+    Node curNode = null;
+    for (Node n : init) {
+      if (curNode == null) {
+        newList.add(n);
+        curNode = n;
+        continue;
+      }
+
+      Vec3 vecCurNode = new Vec3(
+        curNode.blockPos.getX() + 0.5,
+        curNode.blockPos.getY(),
+        curNode.blockPos.getZ() + 0.5
+      );
+
+      Vec3 vecN = new Vec3(
+        n.blockPos.getX() + 0.5,
+        n.blockPos.getY(),
+        n.blockPos.getZ() + 0.5
+      );
+
+      if (
+        n.blockPos.getY() != curNode.blockPos.getY() ||
+        bresenham(vecCurNode, vecN) != null
+      ) {
+        newList.add(n);
+        curNode = n;
+      }
+    }
+
+    return newList;
   }
 }

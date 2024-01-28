@@ -7,6 +7,7 @@ import com.finder.calculator.util.Callback;
 import com.finder.calculator.util.Node;
 import com.finder.debug.util.RenderUtil;
 import com.finder.exec.PathExec;
+import com.finder.util.BlockUtil;
 import com.finder.util.ChatUtil;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +22,7 @@ public class Test1 {
 
   private static final Pathfinder finder = new Pathfinder();
   private static final PathExec executer = new PathExec();
+  private static final BlockUtil utils = new BlockUtil();
 
   public Test1() {
     MinecraftForge.EVENT_BUS.register(executer);
@@ -65,6 +67,7 @@ public class Test1 {
             @Override
             public void finderDone(List<Node> path, long amtTime) {
               //RenderUtil.clear();
+              path = utils.shortenPath(path);
               for (Node node : path) {
                 RenderUtil.addBlockToRenderSync(node.blockPos);
               }
