@@ -13,8 +13,6 @@ public class AStarPathfinder {
 
   public long timeTaken = System.currentTimeMillis();
   public int nodesConsidered = 0;
-
-  // For gebug
   boolean isDone = false;
 
   public void run(Config config) throws NoPathException {
@@ -39,6 +37,8 @@ public class AStarPathfinder {
           } catch (InterruptedException e) {
             throw new RuntimeException(e);
           }
+
+          ChatUtil.sendChat("Nodes considered: " + nodesConsidered);
         }
       })
         .start();
@@ -64,7 +64,7 @@ public class AStarPathfinder {
     PriorityQueue<Node> openSet = new PriorityQueue<>();
     HashSet<BlockPos> openHash = new HashSet<>();
     openSet.add(config.start);
-    // PS: Idk if we need dis but ima assume that u cant .contains in priority queue fast enough...
+
     HashSet<BlockPos> closedSet = new HashSet<>();
     int i = 0;
     nodesConsidered = 0;
@@ -72,7 +72,6 @@ public class AStarPathfinder {
 
     while (!openSet.isEmpty() && i < config.maxIter) {
       Node best = openSet.poll();
-      //ChatUtil.sendChat(String.valueOf(i));
 
       if (config.end.blockPos.equals(best.blockPos)) {
         timeTaken = System.currentTimeMillis() - timeInit;
@@ -81,7 +80,6 @@ public class AStarPathfinder {
       }
 
       closedSet.add(best.blockPos);
-      //RenderUtil.addBlockToRenderSync(best.blockPos);
 
       for (Node n : best.genNodesAround(config.end)) {
         if (
@@ -93,7 +91,6 @@ public class AStarPathfinder {
 
         n.generateCostsForNode(config.end.blockPos, interactions);
 
-        // Add custom costs
         if (config.costs != null) {
           Triple<Double, Double, Double> costs = config.costs.addCost(n);
           n.gCost += costs.getLeft();
@@ -105,21 +102,13 @@ public class AStarPathfinder {
           openHash.add(n.blockPos);
           openSet.add(n);
         }
-        //RenderUtil.addBlockToRenderSync(best.blockPos);
       }
-
-      /*try {
-        Thread.sleep(10);
-      } catch (InterruptedException e) {
-        throw new RuntimeException(e);
-      }*/
 
       i++;
       nodesConsidered++;
     }
 
     timeTaken = System.currentTimeMillis() - timeInit;
-    //ChatUtil.sendChat(String.valueOf(closedSet.size()));
     isDone = true;
     return null;
   }
