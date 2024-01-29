@@ -61,26 +61,34 @@ public class Test1 {
         new Config(
           ForgeFinder.MC.thePlayer.getPositionVector(),
           new Vec3(ints.get(1), ints.get(2), ints.get(3)),
-          10000,
+          100000,
           5,
           new Callback() {
             @Override
-            public void finderDone(List<Node> path, long amtTime) {
+            public void finderDone(
+              List<Node> path,
+              long amtTime,
+              int nodesConsidered
+            ) {
               //RenderUtil.clear();
-              path = utils.shortenPath(path);
+              //path = utils.shortenPath(path);
               for (Node node : path) {
                 RenderUtil.addBlockToRenderSync(node.blockPos);
               }
-
-              executer.runWithDifList(path, true);
 
               ChatUtil.sendChat(
                 "Path found with length: " +
                 path.size() +
                 ". Took: " +
                 amtTime +
+                "ms. Considered " +
+                nodesConsidered +
+                " nodes with avg time/node being " +
+                (amtTime + 0.01) /
+                nodesConsidered +
                 "ms."
               );
+              //executer.runWithDifList(path, true);
             }
 
             @Override
@@ -91,7 +99,8 @@ public class Test1 {
               );
             }
           }
-        )
+        ),
+        true
       );
     }
   }
