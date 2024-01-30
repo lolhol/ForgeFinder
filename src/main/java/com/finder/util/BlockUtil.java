@@ -197,22 +197,11 @@ public class BlockUtil extends MathUtil {
         continue;
       }
 
-      Vec3 vecCurNode = new Vec3(
-        curNode.blockPos.getX() + 0.5,
-        curNode.blockPos.getY(),
-        curNode.blockPos.getZ() + 0.5
-      );
+      Vec3 vecCurNode = new Vec3(curNode.x + 0.5, curNode.y, curNode.z + 0.5);
 
-      Vec3 vecN = new Vec3(
-        n.blockPos.getX() + 0.5,
-        n.blockPos.getY(),
-        n.blockPos.getZ() + 0.5
-      );
+      Vec3 vecN = new Vec3(n.x + 0.5, n.y, n.z + 0.5);
 
-      if (
-        n.blockPos.getY() != curNode.blockPos.getY() ||
-        bresenham(vecCurNode, vecN) != null
-      ) {
+      if (n.y != curNode.y || bresenham(vecCurNode, vecN) != null) {
         newList.add(n);
         curNode = n;
       }

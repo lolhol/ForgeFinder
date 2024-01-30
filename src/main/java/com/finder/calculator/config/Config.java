@@ -26,14 +26,14 @@ public class Config extends BlockUtil {
     Callback callback
   ) {
     this.callback = callback;
+
     double dist = getTimeReqMS(
       this.blocksPerSecond,
       distanceFromTo(startBlock, endBlock)
     );
-    this.start =
-      new Node(0, dist, dist, null, fromVecToBP(startBlock), blocksPerSecond);
-    this.end =
-      new Node(dist, 0, dist, null, fromVecToBP(endBlock), blocksPerSecond);
+
+    this.start = new Node(dist, null, fromVecToBP(startBlock));
+    this.end = new Node(dist, null, fromVecToBP(endBlock));
     this.maxIter = maxIter;
     this.blocksPerSecond = blocksPerSecond;
     this.walkerErrorCoef = blocksPerSecond * blocksPerSecond;
@@ -52,10 +52,8 @@ public class Config extends BlockUtil {
       this.blocksPerSecond,
       distanceFromTo(startBlock, endBlock)
     );
-    this.start =
-      new Node(0, dist, dist, null, fromVecToBP(startBlock), blocksPerSecond);
-    this.end =
-      new Node(dist, 0, dist, null, fromVecToBP(endBlock), blocksPerSecond);
+    this.start = new Node(dist, null, fromVecToBP(startBlock));
+    this.end = new Node(dist, null, fromVecToBP(endBlock));
     this.maxIter = maxIter;
     this.blocksPerSecond = blocksPerSecond;
     this.costs = costs;
@@ -74,10 +72,8 @@ public class Config extends BlockUtil {
       this.blocksPerSecond,
       distanceFromTo(startBlock, endBlock)
     );
-    this.start =
-      new Node(0, dist, dist, null, fromVecToBP(startBlock), blocksPerSecond);
-    this.end =
-      new Node(dist, 0, dist, null, fromVecToBP(endBlock), blocksPerSecond);
+    this.start = new Node(dist, null, fromVecToBP(startBlock));
+    this.end = new Node(dist, null, fromVecToBP(endBlock));
     this.maxIter = maxIter;
     this.blocksPerSecond = CostConst.WALK_ONE_BLOCK_COST * 20;
     this.walkerErrorCoef = blocksPerSecond * blocksPerSecond;

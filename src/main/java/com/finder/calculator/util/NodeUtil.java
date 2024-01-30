@@ -1,27 +1,33 @@
 package com.finder.calculator.util;
 
-import com.finder.ForgeFinder;
 import com.finder.util.BlockUtil;
-import com.finder.util.ChatUtil;
-import net.minecraft.block.state.BlockState;
 import net.minecraft.util.BlockPos;
 
 public class NodeUtil extends BlockUtil {
 
-  public Node makeNode(BlockPos block, Node parent, Node endNode) {
-    return new Node(0, 0, 0, parent, block, parent.blocksPerSecond);
+  public Node makeNode(BlockPos block, Node parent) {
+    return new Node(0, parent, block);
   }
 
   // [walk, fall, jump]
   public boolean[] isAbleToInteract(Node node) {
-    return new boolean[] { canWalkOn(node), canFall(node), canJumpOn(node) };
+    BlockPos bp = new BlockPos(node.x, node.y, node.z);
+    BlockPos parentBP = new BlockPos(
+      node.parent.x,
+      node.parent.y,
+      node.parent.z
+    );
+    return new boolean[] {
+      canWalkOn(node, bp),
+      canFall(node, bp, parentBP),
+      canJumpOn(node, bp, parentBP),
+    };
   }
 
-  private boolean canWalkOn(Node node) {
-    BlockPos block = node.blockPos;
+  private boolean canWalkOn(Node node, BlockPos block) {
     Node parent = node.parent;
 
-    double yDif = Math.abs(parent.blockPos.getY() - block.getY());
+    double yDif = Math.abs(parent.y - block.getY());
 
     BlockPos blockAbove1 = block.add(0, 1, 0);
     BlockPos blockBelow1 = block.add(0, -1, 0);
@@ -52,17 +58,15 @@ public class NodeUtil extends BlockUtil {
     return false;
   }
 
-  private boolean canJumpOn(Node node) {
+  private boolean canJumpOn(Node node, BlockPos block, BlockPos parentBlock) {
     if (node.parent != null && node.parent.isSlab) return false;
-    BlockPos block = node.blockPos;
-    Node parentBlock = node.parent;
-    double yDiff = block.getY() - parentBlock.blockPos.getY();
+    double yDiff = block.getY() - parentBlock.getY();
 
     BlockPos blockAbove1 = block.add(0, 1, 0);
     BlockPos blockBelow1 = block.add(0, -1, 0);
 
-    BlockPos blockAboveOneParent = parentBlock.blockPos.add(0, 1, 0);
-    BlockPos blockAboveTwoParent = parentBlock.blockPos.add(0, 2, 0);
+    BlockPos blockAboveOneParent = parentBlock.add(0, 1, 0);
+    BlockPos blockAboveTwoParent = parentBlock.add(0, 2, 0);
 
     if (
       yDiff == 1 &&
@@ -72,7 +76,7 @@ public class NodeUtil extends BlockUtil {
       !isBlockSolid(blockAboveTwoParent) &&
       isBlockWalkable(block)
     ) {
-      if (distanceFromToXZ(block, parentBlock.blockPos) <= 1) {
+      if (distanceFromToXZ(block, parentBlock) <= 1) {
         return true;
       }
 
@@ -82,11 +86,8 @@ public class NodeUtil extends BlockUtil {
     return false;
   }
 
-  private boolean canFall(Node node) {
-    BlockPos block = node.blockPos;
-    Node parentBlock = node.parent;
-
-    double yDiff = block.getY() - parentBlock.blockPos.getY();
+  private boolean canFall(Node node, BlockPos block, BlockPos parentBlock) {
+    double yDiff = block.getY() - parentBlock.getY();
 
     BlockPos blockBelow1 = block.add(0, -1, 0);
     BlockPos blockAbove1 = block.add(0, 1, 0);
@@ -100,7 +101,7 @@ public class NodeUtil extends BlockUtil {
       ) &&
       isBlockWalkable(block)
     ) {
-      if (distanceFromToXZ(block, parentBlock.blockPos) <= 1) {
+      if (distanceFromToXZ(block, parentBlock) <= 1) {
         return true;
       }
 

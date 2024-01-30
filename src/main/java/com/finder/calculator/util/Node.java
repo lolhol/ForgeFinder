@@ -11,32 +11,26 @@ import org.jetbrains.annotations.NotNull;
 
 public class Node extends NodeUtil implements Comparable<Node> {
 
-  public BlockPos blockPos;
+  public final int x;
+  public final int y;
+  public final int z;
 
   public Node parent;
 
   // gCost and hCost are in milliseconds
-  public double gCost;
-  public double hCost;
   public double totalCost;
-
-  public double blocksPerSecond;
   public boolean isSlab = false;
 
-  public Node(
-    double gCost,
-    double hCost,
-    double totalCost,
-    Node parent,
-    BlockPos bp,
-    double blocksPerSecond
-  ) {
-    this.gCost = gCost;
-    this.hCost = hCost;
+  public Node(double totalCost, Node parent, BlockPos bp) {
     this.totalCost = totalCost;
     this.parent = parent;
-    this.blockPos = bp;
-    this.blocksPerSecond = blocksPerSecond;
+    this.x = bp.getX();
+    this.y = bp.getY();
+    this.z = bp.getZ();
+  }
+
+  public boolean equals(Node o) {
+    return o.x == this.x && o.y == this.y && o.z == this.z;
   }
 
   @Override
@@ -54,8 +48,7 @@ public class Node extends NodeUtil implements Comparable<Node> {
   public boolean isOnSide() {
     if (parent == null) return false;
     return (
-      absAbsSubtract(blockPos.getX(), parent.blockPos.getX()) >= 1 &&
-      absAbsSubtract(blockPos.getZ(), parent.blockPos.getZ()) >= 1
+      absAbsSubtract(x, parent.x) >= 1 && absAbsSubtract(z, parent.z) >= 1
     );
   }
 
@@ -66,15 +59,11 @@ public class Node extends NodeUtil implements Comparable<Node> {
       for (int y = -1; y <= 1; y++) {
         for (int z = -1; z <= 1; z++) {
           if (x == 0 && y == 0 && z == 0) continue;
-          BlockPos bp = new BlockPos(
-            blockPos.getX() + x,
-            blockPos.getY() + y,
-            blockPos.getZ() + z
-          );
-          nodeList.add(makeNode(bp, this, endNode));
+          BlockPos bp = new BlockPos(this.x + x, this.y + y, this.z + z);
+          nodeList.add(makeNode(bp, this));
           while (getBlock(bp.down()) == Blocks.air) {
             bp = bp.down();
-            nodeList.add(makeNode(bp, this, endNode));
+            nodeList.add(makeNode(bp, this));
           }
         }
       }
@@ -86,64 +75,16 @@ public class Node extends NodeUtil implements Comparable<Node> {
   public boolean isClearOnSides() {
     if (this.parent == null) return false;
 
-    double changeX = parent.blockPos.getX() - blockPos.getX();
-    double changeZ = parent.blockPos.getZ() - blockPos.getZ();
+    double changeX = parent.x - x;
+    double changeZ = parent.z - z;
 
+    BlockPos blockPos = new BlockPos(x, y, z);
     return (
       !isBlockSolid(blockPos.add(0, 0, changeZ)) &&
       !isBlockSolid(blockPos.add(changeX, 0, 0)) &&
       !isBlockSolid(blockPos.add(0, 1, changeZ)) &&
       !isBlockSolid(blockPos.add(changeX, 1, 0))
     );
-    /*BlockPos blockPos = this.parent.blockPos;
-
-    Vec3 perpNorm = getNormalVecBetweenVecsRev(
-      fromBPToVec(this.blockPos),
-      fromBPToVec(blockPos)
-    );
-
-    Vec3 centofLine = new Vec3(
-      (double) (blockPos.getX() + this.blockPos.getX()) / 2,
-      (double) (blockPos.getY() + this.blockPos.getY()) / 2,
-      (double) (blockPos.getZ() + this.blockPos.getZ()) / 2
-    );
-
-    BlockPos b01 = new BlockPos(
-      centofLine.xCoord + perpNorm.xCoord,
-      centofLine.yCoord,
-      centofLine.zCoord + perpNorm.zCoord
-    );
-    BlockPos b02 = new BlockPos(
-      centofLine.xCoord - perpNorm.xCoord,
-      centofLine.yCoord,
-      centofLine.zCoord - perpNorm.zCoord
-    );
-
-    BlockPos b11 = new BlockPos(
-      centofLine.xCoord + perpNorm.xCoord,
-      centofLine.yCoord + 1,
-      centofLine.zCoord + perpNorm.zCoord
-    );
-    BlockPos b12 = new BlockPos(
-      centofLine.xCoord - perpNorm.xCoord,
-      centofLine.yCoord + 1,
-      centofLine.zCoord - perpNorm.zCoord
-    );
-
-    if (this.blockPos.getX() == -81 && this.blockPos.getZ() == 308) {
-      RenderUtil.addBlockToRenderSync(b01);
-      RenderUtil.addBlockToRenderSync(b02);
-      RenderUtil.addBlockToRenderSync(b11);
-      RenderUtil.addBlockToRenderSync(b12);
-      ChatUtil.sendChat("!!!!!!!!");
-    }
-
-    return (
-      !isBlockSolid(b01) &&
-      !isBlockSolid(b02) &&
-      !isBlockSolid(b11) &&
-      !isBlockSolid(b12)
-    );*/
   }
 
   public List<Node> makeList() {
@@ -160,23 +101,31 @@ public class Node extends NodeUtil implements Comparable<Node> {
     return retList;
   }
 
-  public void generateCostsForNode(BlockPos endBlock, boolean[] interactions) {
-    double distanceEnd = distanceFromTo(blockPos, endBlock);
+  public void generateCostsForNode(
+    BlockPos endBlock,
+    boolean[] interactions,
+    double blocksPerSecond
+  ) {
+    double gCost = 0;
+
+    double distanceEnd = distanceFromTo(x, y, z, endBlock);
 
     if (blocksPerSecond != 0) {
       distanceEnd = distanceEnd / blocksPerSecond * 1000;
     }
 
-    hCost = distanceEnd;
+    double hCost = distanceEnd;
 
-    double yDiff = Math.abs(blockPos.getY() - parent.blockPos.getY());
+    double yDiff = Math.abs(y - parent.y);
 
     if (interactions[0]) {
       gCost +=
         CostConst.calculateTimeToWalkOneBlock(
-          this.blocksPerSecond,
-          blockPos,
-          parent.blockPos
+          blocksPerSecond,
+          x,
+          z,
+          parent.x,
+          parent.z
         );
     } else if (interactions[1]) {
       gCost += (CostConst.FALL_1_25_BLOCKS_COST) * yDiff * 50;
@@ -190,24 +139,16 @@ public class Node extends NodeUtil implements Comparable<Node> {
     double radius = Math.sqrt(blocksPerSecond);
 
     Iterable<BlockPos> blocksAround = BlockPos.getAllInBox(
-      new BlockPos(
-        blockPos.getX() + radius,
-        blockPos.getY() + radius,
-        blockPos.getZ() + radius
-      ),
-      new BlockPos(
-        blockPos.getX() - radius,
-        blockPos.getY() - radius,
-        blockPos.getZ() - radius
-      )
+      new BlockPos(x + radius, y + radius, z + radius),
+      new BlockPos(x - radius, y - radius, z - radius)
     );
 
     AtomicInteger atomInt = new AtomicInteger();
     AtomicInteger underInt = new AtomicInteger();
     blocksAround.forEach(a -> {
-      if (isBlockSolid(a) && a.getY() >= blockPos.getY()) {
+      if (isBlockSolid(a) && a.getY() >= y) {
         atomInt.incrementAndGet();
-      } else if (a.getY() < blockPos.getY() && !isBlockSolid(a)) {
+      } else if (a.getY() < y && !isBlockSolid(a)) {
         underInt.incrementAndGet();
       }
     });
@@ -215,11 +156,15 @@ public class Node extends NodeUtil implements Comparable<Node> {
     gCost += atomInt.get() * 20;
     gCost += underInt.get() * 10;
 
-    if (parent != null) {
+    /*if (parent != null) {
       gCost += parent.gCost;
-    }
+    }*/
 
     totalCost = hCost + gCost;
     //ChatUtil.sendChat(String.valueOf(totalCost));
+  }
+
+  public BlockPos getBlockPos() {
+    return new BlockPos(this.x, this.y, this.z);
   }
 }

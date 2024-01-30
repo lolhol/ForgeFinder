@@ -16,6 +16,7 @@ public class ForgeFinder {
   public void init(FMLInitializationEvent event) {
     MinecraftForge.EVENT_BUS.register(new Test1());
     MinecraftForge.EVENT_BUS.register(new RenderUtil());
+    //MinecraftForge.EVENT_BUS.register(new CacheManager(true));
   }
   // PS: ik theres the Command base from the essentials but i dont have wifi atm so :/
 

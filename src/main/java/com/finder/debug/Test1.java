@@ -61,8 +61,8 @@ public class Test1 {
         new Config(
           ForgeFinder.MC.thePlayer.getPositionVector(),
           new Vec3(ints.get(1), ints.get(2), ints.get(3)),
-          1000000,
-          10,
+          1000,
+          5,
           new Callback() {
             @Override
             public void finderDone(
@@ -73,7 +73,7 @@ public class Test1 {
               //RenderUtil.clear();
               //path = utils.shortenPath(path);
               for (Node node : path) {
-                RenderUtil.addBlockToRenderSync(node.blockPos);
+                RenderUtil.addBlockToRenderSync(node.getBlockPos());
               }
 
               ChatUtil.sendChat(
@@ -88,7 +88,7 @@ public class Test1 {
                 nodesConsidered +
                 "ms."
               );
-              executer.runWithDifList(path, true);
+              //executer.runWithDifList(path, true);
             }
 
             @Override

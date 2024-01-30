@@ -1,63 +1,75 @@
 package com.finder.cache;
 
 import com.finder.ForgeFinder;
+import com.finder.cache.util.CacheState;
 import com.finder.events.ChunkLoadEvent;
-import java.util.BitSet;
-import java.util.List;
-import net.minecraft.block.Block;
-import net.minecraft.init.Blocks;
+import java.util.*;
 import net.minecraft.util.BlockPos;
 import net.minecraft.world.chunk.Chunk;
-import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 public class CacheManager {
 
-  private BitSet biteSet = new BitSet();
+  ChunkCachefier chunkCachefierThread = null;
+  boolean isCaching;
+  List<int[]> chunksNotCached = new ArrayList<>();
+  private final Map<int[], CachedChunk> cachedChunks =
+    Collections.synchronizedMap(new HashMap<>());
+
+  private final HashSet<int[]> cachedChunksPositions = new HashSet<>();
+
+  public CacheManager(boolean startCaching) {
+    this.isCaching = startCaching;
+  }
 
   @SubscribeEvent
   public void onChunkLoad(ChunkLoadEvent event) {
-    Chunk chunk = event.getChunk();
-    BlockPos bp = new BlockPos(chunk.xPosition * 16, 0, chunk.zPosition * 16);
-    for (int x = 0; x < 16; x++) {
-      for (int y = 0; y < 256; y++) {
-        for (int z = 0; z < 16; z++) {
-          bp.add(x, y, z);
+    if (!isCaching) {
+      Chunk chunk = event.getChunk();
+      chunksNotCached.add(new int[] { chunk.xPosition, chunk.zPosition });
+      return;
+    }
 
-          if (
-            isBlockSolid(ForgeFinder.MC.theWorld.getBlockState(bp).getBlock())
-          ) {
-            if (
-              !isBlockSolid(
-                ForgeFinder.MC.theWorld.getBlockState(bp.up()).getBlock()
-              )
-            ) {
-              if (
-                !isBlockSolid(
-                  ForgeFinder.MC.theWorld.getBlockState(bp.up().up()).getBlock()
-                )
-              ) {}
-            }
-          }
-        }
+    Chunk chunk = event.getChunk();
+    int[] chunkPosInt = new int[] { chunk.xPosition, chunk.zPosition };
+
+    if (!chunksNotCached.isEmpty()) {
+      for (int[] c : chunksNotCached) {
+        Chunk notCachedChunk = ForgeFinder.MC.theWorld.getChunkFromChunkCoords(
+          c[0],
+          c[1]
+        );
+        addChunkToCache(notCachedChunk, c);
       }
+    }
+
+    addChunkToCache(chunk, chunkPosInt);
+  }
+
+  private void addChunkToCache(Chunk chunk, int[] chunkPosInt) {
+    if (!cachedChunksPositions.contains(chunkPosInt)) {
+      if (chunkCachefierThread == null || !chunkCachefierThread.isAlive()) {
+        chunkCachefierThread = new ChunkCachefier(cachedChunks, chunk);
+        chunkCachefierThread.start();
+      } else {
+        chunkCachefierThread.addChunkToCacheLater(chunk);
+      }
+
+      cachedChunksPositions.add(chunkPosInt);
     }
   }
 
-  private boolean isBlockSolid(Block blockType) {
-    return (
-      blockType != Blocks.water &&
-      blockType != Blocks.lava &&
-      blockType != Blocks.air &&
-      blockType != Blocks.red_flower &&
-      blockType != Blocks.tallgrass &&
-      blockType != Blocks.yellow_flower &&
-      blockType != Blocks.double_plant &&
-      blockType != Blocks.flowing_water
-    );
+  public CachedChunk getCachedChunk(int x, int z) {
+    return cachedChunks.get(new int[] { x >> 4, z >> 4 });
   }
 
-  public int getPositionIndex(int x, int y, int z) {
-    return (x << 1) | (z << 5) | (y << 9);
+  public CacheState getBlockInfoCached(int xPos, int yPos, int zPos) {
+    return getCachedChunk(xPos, zPos).isBlockSolidInChunk(xPos, yPos, zPos);
+  }
+
+  public boolean isBlockCached(BlockPos bp) {
+    return cachedChunksPositions.contains(
+      new int[] { bp.getX() >> 4, bp.getZ() >> 4 }
+    );
   }
 }

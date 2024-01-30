@@ -1,4 +1,4 @@
-package com.finder.mixins;
+package com.finder.mixin;
 
 import com.finder.events.BlockChangeEvent;
 import com.finder.events.ChunkLoadEvent;

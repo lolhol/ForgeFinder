@@ -30,7 +30,7 @@ public class PathExec {
   public void runWithDifList(List<Node> blocksOnPath, boolean state) {
     List<BlockPos> blocks = new ArrayList<>();
     for (Node n : blocksOnPath) {
-      blocks.add(n.blockPos);
+      blocks.add(n.getBlockPos());
     }
     this.blocksOnPath = blocks;
     BlockPos first = this.blocksOnPath.get(0);

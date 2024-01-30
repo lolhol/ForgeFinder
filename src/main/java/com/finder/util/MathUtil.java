@@ -29,9 +29,31 @@ public class MathUtil extends TimeUtil {
     return Math.sqrt(distX * distX + distY * distY + distZ * distZ);
   }
 
+  public double distanceFromTo(int x, int y, int z, BlockPos b) {
+    double distX = x - b.getX();
+    double distY = y - b.getY();
+    double distZ = z - b.getZ();
+
+    return Math.sqrt(distX * distX + distY * distY + distZ * distZ);
+  }
+
   public double distanceFromToXZ(BlockPos a, BlockPos b) {
     double distX = a.getX() - b.getX();
     double distZ = a.getZ() - b.getZ();
+
+    return Math.sqrt(distX * distX + distZ * distZ);
+  }
+
+  public double distanceFromToXZ(int x, int z, int x1, int z1) {
+    double distX = x - x1;
+    double distZ = z - z1;
+
+    return Math.sqrt(distX * distX + distZ * distZ);
+  }
+
+  public double distanceFromToXZ(int x, int z, BlockPos b) {
+    double distX = x - b.getX();
+    double distZ = z - b.getZ();
 
     return Math.sqrt(distX * distX + distZ * distZ);
   }
@@ -45,5 +67,9 @@ public class MathUtil extends TimeUtil {
 
   public Vec3 getNormalVecBetweenVecsRev(Vec3 vec1, Vec3 vec2) {
     return vec2.subtract(vec1).normalize().rotateYaw(90);
+  }
+
+  public static int getPositionIndex(int x, int y, int z) {
+    return (x << 1) | (z << 5) | (y << 9);
   }
 }

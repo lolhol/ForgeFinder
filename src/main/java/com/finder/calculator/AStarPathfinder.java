@@ -3,8 +3,8 @@ package com.finder.calculator;
 import com.finder.calculator.config.Config;
 import com.finder.calculator.errors.NoPathException;
 import com.finder.calculator.util.Node;
+import com.finder.calculator.util.NodeListManager;
 import com.finder.util.ChatUtil;
-import java.util.HashSet;
 import java.util.PriorityQueue;
 import net.minecraft.util.BlockPos;
 import org.apache.commons.lang3.tuple.Triple;
@@ -57,51 +57,51 @@ public class AStarPathfinder {
   }
 
   public Node runStar(Config config) {
-    isDone = false;
-
     long timeInit = System.currentTimeMillis();
 
+    BlockPos startBP = new BlockPos(
+      config.start.x,
+      config.start.y,
+      config.start.z
+    );
+    BlockPos endBP = new BlockPos(config.end.x, config.end.y, config.end.z);
+
+    final NodeListManager manager = new NodeListManager(startBP);
+
     PriorityQueue<Node> openSet = new PriorityQueue<>();
-    HashSet<BlockPos> openHash = new HashSet<>();
+
+    manager.addOpenHash(config.start);
     openSet.add(config.start);
 
-    HashSet<BlockPos> closedSet = new HashSet<>();
     int i = 0;
+    isDone = false;
     nodesConsidered = 0;
-    openHash.add(config.start.blockPos);
-
     while (!openSet.isEmpty() && i < config.maxIter) {
       Node best = openSet.poll();
 
-      if (config.end.blockPos.equals(best.blockPos)) {
+      if (config.end.equals(best)) {
         timeTaken = System.currentTimeMillis() - timeInit;
         isDone = true;
         return best;
       }
 
-      closedSet.add(best.blockPos);
+      manager.addNodeClosed(best);
 
       for (Node n : best.genNodesAround(config.end)) {
-        if (
-          closedSet.contains(n.blockPos) || openHash.contains(n.blockPos)
-        ) continue;
+        if (manager.isClosed(n) || manager.isNodeInOpen(n)) continue;
 
         boolean[] interactions = n.isAbleToInteract(n);
         if (!interactions[0] && !interactions[1] && !interactions[2]) continue;
 
-        n.generateCostsForNode(config.end.blockPos, interactions);
+        n.generateCostsForNode(endBP, interactions, config.blocksPerSecond);
 
         if (config.costs != null) {
           Triple<Double, Double, Double> costs = config.costs.addCost(n);
-          n.gCost += costs.getLeft();
-          n.hCost += costs.getMiddle();
-          n.totalCost += costs.getRight();
+          n.totalCost += costs.getRight() + costs.getLeft() + costs.getMiddle();
         }
 
-        if (!openHash.contains(n.blockPos)) {
-          openHash.add(n.blockPos);
-          openSet.add(n);
-        }
+        openSet.add(n);
+        manager.addOpenHash(n);
       }
 
       i++;
