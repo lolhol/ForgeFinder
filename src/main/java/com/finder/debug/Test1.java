@@ -62,7 +62,7 @@ public class Test1 {
           ForgeFinder.MC.thePlayer.getPositionVector(),
           new Vec3(ints.get(1), ints.get(2), ints.get(3)),
           1000,
-          5,
+          1,
           new Callback() {
             @Override
             public void finderDone(

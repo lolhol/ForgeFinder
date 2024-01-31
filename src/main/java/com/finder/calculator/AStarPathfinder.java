@@ -4,6 +4,7 @@ import com.finder.calculator.config.Config;
 import com.finder.calculator.errors.NoPathException;
 import com.finder.calculator.util.Node;
 import com.finder.calculator.util.NodeListManager;
+import com.finder.debug.util.RenderUtil;
 import com.finder.util.ChatUtil;
 import java.util.PriorityQueue;
 import net.minecraft.util.BlockPos;
@@ -67,7 +68,6 @@ public class AStarPathfinder {
     BlockPos endBP = new BlockPos(config.end.x, config.end.y, config.end.z);
 
     final NodeListManager manager = new NodeListManager(startBP);
-
     PriorityQueue<Node> openSet = new PriorityQueue<>();
 
     manager.addOpenHash(config.start);
@@ -85,13 +85,13 @@ public class AStarPathfinder {
         return best;
       }
 
-      manager.addNodeClosed(best);
-
       for (Node n : best.genNodesAround(config.end)) {
         if (manager.isClosed(n) || manager.isNodeInOpen(n)) continue;
 
         boolean[] interactions = n.isAbleToInteract(n);
-        if (!interactions[0] && !interactions[1] && !interactions[2]) continue;
+        if (!interactions[0] && !interactions[1] && !interactions[2]) {
+          continue;
+        }
 
         n.generateCostsForNode(endBP, interactions, config.blocksPerSecond);
 
@@ -103,6 +103,10 @@ public class AStarPathfinder {
         openSet.add(n);
         manager.addOpenHash(n);
       }
+
+      manager.addNodeClosed(best);
+      manager.removeNodeOpen(best);
+      RenderUtil.addBlockToRenderSync(best.getBlockPos());
 
       i++;
       nodesConsidered++;

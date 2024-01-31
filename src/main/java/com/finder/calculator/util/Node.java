@@ -1,6 +1,7 @@
 package com.finder.calculator.util;
 
 import com.finder.calculator.cost.CostConst;
+import com.finder.util.ChatUtil;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -58,7 +59,7 @@ public class Node extends NodeUtil implements Comparable<Node> {
     for (int x = -1; x <= 1; x++) {
       for (int y = -1; y <= 1; y++) {
         for (int z = -1; z <= 1; z++) {
-          if (x == 0 && y == 0 && z == 0) continue;
+          if (x == 0 && (y == 0 || y == -1 || y == 1) && z == 0) continue;
           BlockPos bp = new BlockPos(this.x + x, this.y + y, this.z + z);
           nodeList.add(makeNode(bp, this));
           while (getBlock(bp.down()) == Blocks.air) {
@@ -106,9 +107,8 @@ public class Node extends NodeUtil implements Comparable<Node> {
     boolean[] interactions,
     double blocksPerSecond
   ) {
-    double gCost = 0;
-
     double distanceEnd = distanceFromTo(x, y, z, endBlock);
+    double gCost = 0;
 
     if (blocksPerSecond != 0) {
       distanceEnd = distanceEnd / blocksPerSecond * 1000;
@@ -127,10 +127,12 @@ public class Node extends NodeUtil implements Comparable<Node> {
           parent.x,
           parent.z
         );
+
+      ChatUtil.sendChat("!!!");
     } else if (interactions[1]) {
-      gCost += (CostConst.FALL_1_25_BLOCKS_COST) * yDiff * 50;
+      gCost += (CostConst.FALL_1_25_BLOCKS_COST) * yDiff * 20;
     } else if (interactions[2]) {
-      gCost += CostConst.JUMP_ONE_BLOCK_COST * yDiff * 50;
+      gCost += CostConst.JUMP_ONE_BLOCK_COST * yDiff * 20;
       //ChatUtil.sendChat(String.valueOf(gCost));
     } else {
       gCost = CostConst.COST_INF;
@@ -161,7 +163,6 @@ public class Node extends NodeUtil implements Comparable<Node> {
     }*/
 
     totalCost = hCost + gCost;
-    //ChatUtil.sendChat(String.valueOf(totalCost));
   }
 
   public BlockPos getBlockPos() {
