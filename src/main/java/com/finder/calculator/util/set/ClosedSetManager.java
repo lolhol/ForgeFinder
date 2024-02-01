@@ -1,6 +1,8 @@
 package com.finder.calculator.util.set;
 
+import com.finder.calculator.util.BetterBlockPos;
 import com.finder.calculator.util.Node;
+import com.finder.util.ChatUtil;
 import com.finder.util.MathUtil;
 import java.util.HashMap;
 import net.minecraft.util.BlockPos;
@@ -8,7 +10,7 @@ import net.minecraft.util.BlockPos;
 public class ClosedSetManager {
 
   private final int[] START_CHUNK_POS;
-  private final HashMap<byte[], ClosedSetChunk> chunks = new HashMap<>();
+  private final HashMap<ChunkPos, ClosedSetChunk> chunks = new HashMap<>();
 
   // above the max of 256 chunks. IK IK this not gon be efficient if you have > 256 chunks pathing but i mean... we can jst copy
   // the chunks when we get to > 256 i mean ehhh thats like 65k chunks worth of data like bruh...
@@ -27,14 +29,9 @@ public class ClosedSetManager {
   }
 
   public void add(Node node) {
-    byte[] nodePosChunk = new byte[] {
-      (byte) (MathUtil.getPositionChunk(node.x) - START_CHUNK_POS[0]),
-      (byte) (MathUtil.getPositionChunk(node.z) - START_CHUNK_POS[1]),
-    };
-
-    BlockPos nodeBP = node.getBlockPos();
+    ChunkPos nodePosChunk = getPositionChunk(node);
     if (chunks.containsKey(nodePosChunk)) {
-      chunks.get(nodePosChunk).add(nodeBP, true);
+      chunks.get(nodePosChunk).add(node, true);
     } else {
       chunks.put(
         nodePosChunk,
@@ -43,9 +40,37 @@ public class ClosedSetManager {
             MathUtil.getPositionChunk(node.x),
             MathUtil.getPositionChunk(node.z),
           },
-          nodeBP
+          node
         )
       );
+      //ChatUtil.sendChat(nodePosChunk.x + " ! " + nodePosChunk.z);
     }
+  }
+
+  public ChunkPos getPositionChunk(Node node) {
+    return new ChunkPos(
+      new byte[] {
+        (byte) (MathUtil.getPositionChunk(node.x) - START_CHUNK_POS[0]),
+        (byte) (MathUtil.getPositionChunk(node.z) - START_CHUNK_POS[1]),
+      }
+    );
+  }
+
+  public ChunkPos getPositionChunk(BetterBlockPos node) {
+    return new ChunkPos(
+      new byte[] {
+        (byte) (MathUtil.getPositionChunk(node.x) - START_CHUNK_POS[0]),
+        (byte) (MathUtil.getPositionChunk(node.z) - START_CHUNK_POS[1]),
+      }
+    );
+  }
+
+  public boolean isClosedNode(BetterBlockPos bp) {
+    ChunkPos chunkPosition = getPositionChunk(bp);
+    if (chunks.containsKey(chunkPosition)) {
+      return chunks.get(chunkPosition).isClosed(bp);
+    }
+
+    return false;
   }
 }

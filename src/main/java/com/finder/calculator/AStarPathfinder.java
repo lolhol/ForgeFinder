@@ -6,6 +6,7 @@ import com.finder.calculator.util.BetterBlockPos;
 import com.finder.calculator.util.Node;
 import com.finder.calculator.util.NodeListManager;
 import com.finder.calculator.util.NodeUtil;
+import com.finder.calculator.util.set.ClosedSetManager;
 import com.finder.debug.util.RenderUtil;
 import com.finder.util.ChatUtil;
 import java.util.Arrays;
@@ -71,8 +72,11 @@ public class AStarPathfinder {
     );
     BlockPos endBP = new BlockPos(config.end.x, config.end.y, config.end.z);
 
-    final NodeListManager manager = new NodeListManager(startBP);
-    final HashSet<BetterBlockPos> closedSet = new HashSet<>();
+    //final NodeListManager manager = new NodeListManager(startBP);
+    //final HashSet<BetterBlockPos> closedSet = new HashSet<>();
+    final ClosedSetManager closedSetManager = new ClosedSetManager(
+      config.start.getBlockPos()
+    );
     PriorityQueue<Node> openSet = new PriorityQueue<>();
     final HashSet<BetterBlockPos> openHash = new HashSet<>();
 
@@ -92,7 +96,7 @@ public class AStarPathfinder {
       }
 
       for (BetterBlockPos n : best.genNodePosAround()) {
-        if (closedSet.contains(n) || openHash.contains(n)) continue;
+        if (closedSetManager.isClosedNode(n) || openHash.contains(n)) continue;
 
         boolean[] interactions = NodeUtil.isAbleToInteract(
           new int[] { n.x, n.y, n.z },
@@ -113,11 +117,11 @@ public class AStarPathfinder {
 
         openSet.add(node);
         openHash.add(n);
-        RenderUtil.addBlockToRenderSync(node.getBlockPos());
+        //RenderUtil.addBlockToRenderSync(node.getBlockPos());
       }
 
-      closedSet.add(best.getBetterBP());
-      //openHash.remove(best.getPosInt());
+      closedSetManager.add(best);
+      openHash.remove(new BetterBlockPos(new int[] { best.x, best.y, best.z }));
       //manager.removeNodeOpen(best);
 
       i++;

@@ -152,7 +152,7 @@ public class Node implements Comparable<Node> {
       gCost += parent.gCost;
     }*/
 
-    ChatUtil.sendChat(hCost + " | " + gCost + " || " + totalCost);
+    //ChatUtil.sendChat(hCost + " | " + gCost + " || " + totalCost);
     totalCost = hCost + gCost;
   }
 
