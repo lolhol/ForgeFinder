@@ -1,65 +1,60 @@
 package com.finder.calculator.util;
 
 import com.finder.util.BlockUtil;
+import com.finder.util.MathUtil;
 import net.minecraft.util.BlockPos;
 
-public class NodeUtil extends BlockUtil {
+public class NodeUtil {
 
-  public Node makeNode(BlockPos block, Node parent) {
+  public static Node makeNode(BlockPos block, Node parent) {
     return new Node(0, parent, block);
   }
 
   // [walk, fall, jump]
-  public boolean[] isAbleToInteract(Node node) {
-    BlockPos bp = new BlockPos(node.x, node.y, node.z);
-    BlockPos parentBP = new BlockPos(
-      node.parent.x,
-      node.parent.y,
-      node.parent.z
-    );
+  public static boolean[] isAbleToInteract(int[] node, Node parent) {
+    BlockPos bp = new BlockPos(node[0], node[1], node[2]);
+    BlockPos parentBP = new BlockPos(parent.x, parent.y, parent.z);
     return new boolean[] {
-      canWalkOn(node, bp),
-      canFall(node, bp, parentBP),
-      canJumpOn(node, bp, parentBP),
+      canWalkOn(parent, bp),
+      canFall(bp, parentBP),
+      canJumpOn(bp, parentBP),
     };
   }
 
-  private boolean canWalkOn(Node node, BlockPos block) {
-    Node parent = node.parent;
-
+  private static boolean canWalkOn(Node parent, BlockPos block) {
     double yDif = Math.abs(parent.y - block.getY());
 
     BlockPos blockAbove1 = block.add(0, 1, 0);
     BlockPos blockBelow1 = block.add(0, -1, 0);
 
+    int[][] blockParent = new int[][] {
+      new int[] { block.getX(), block.getY(), block.getZ() },
+      new int[] { parent.x, parent.y, parent.z },
+    };
+
     boolean isWalkableSlab =
       (
-        !node.isOnSide() &&
-        getBlock(blockBelow1).getRegistryName().contains("slab")
+        BlockUtil.getBlock(blockBelow1).getRegistryName().contains("slab") &&
+        BlockUtil.isOnSide(blockParent[0], blockParent[1])
       );
 
     if (
       yDif <= 0.001 &&
-      !isBlockSolid(blockAbove1) &&
-      isBlockSolid(blockBelow1) &&
-      (
-        (isBlockWalkable(block) || isWalkableSlab) ||
-        (node.parent != null && node.parent.isSlab)
-      )
+      !BlockUtil.isBlockSolid(blockAbove1) &&
+      BlockUtil.isBlockSolid(blockBelow1) &&
+      ((BlockUtil.isBlockWalkable(block) || isWalkableSlab))
     ) {
-      node.isSlab = isWalkableSlab;
-      if (!node.isOnSide()) {
+      if (!BlockUtil.isOnSide(blockParent[0], blockParent[1])) {
         return true;
       }
 
-      return node.isClearOnSides();
+      return BlockUtil.isClearOnSides(blockParent[0], blockParent[1]);
     }
 
     return false;
   }
 
-  private boolean canJumpOn(Node node, BlockPos block, BlockPos parentBlock) {
-    if (node.parent != null && node.parent.isSlab) return false;
+  private static boolean canJumpOn(BlockPos block, BlockPos parentBlock) {
     double yDiff = block.getY() - parentBlock.getY();
 
     BlockPos blockAbove1 = block.add(0, 1, 0);
@@ -70,23 +65,26 @@ public class NodeUtil extends BlockUtil {
 
     if (
       yDiff == 1 &&
-      isBlockSolid(blockBelow1) &&
-      !isBlockSolid(blockAbove1) &&
-      !isBlockSolid(blockAboveOneParent) &&
-      !isBlockSolid(blockAboveTwoParent) &&
-      isBlockWalkable(block)
+      BlockUtil.isBlockSolid(blockBelow1) &&
+      !BlockUtil.isBlockSolid(blockAbove1) &&
+      !BlockUtil.isBlockSolid(blockAboveOneParent) &&
+      !BlockUtil.isBlockSolid(blockAboveTwoParent) &&
+      BlockUtil.isBlockWalkable(block)
     ) {
-      if (distanceFromToXZ(block, parentBlock) <= 1) {
+      if (MathUtil.distanceFromToXZ(block, parentBlock) <= 1) {
         return true;
       }
 
-      return node.isClearOnSides();
+      return BlockUtil.isClearOnSides(
+        new int[] { block.getX(), block.getY(), block.getZ() },
+        new int[] { parentBlock.getX(), parentBlock.getY(), parentBlock.getZ() }
+      );
     }
 
     return false;
   }
 
-  private boolean canFall(Node node, BlockPos block, BlockPos parentBlock) {
+  private static boolean canFall(BlockPos block, BlockPos parentBlock) {
     double yDiff = block.getY() - parentBlock.getY();
 
     BlockPos blockBelow1 = block.add(0, -1, 0);
@@ -96,16 +94,19 @@ public class NodeUtil extends BlockUtil {
       (
         yDiff < 0 &&
         yDiff > -4 &&
-        isBlockSolid(blockBelow1) &&
-        !isBlockSolid(blockAbove1)
+        BlockUtil.isBlockSolid(blockBelow1) &&
+        !BlockUtil.isBlockSolid(blockAbove1)
       ) &&
-      isBlockWalkable(block)
+      BlockUtil.isBlockWalkable(block)
     ) {
-      if (distanceFromToXZ(block, parentBlock) <= 1) {
+      if (MathUtil.distanceFromToXZ(block, parentBlock) <= 1) {
         return true;
       }
 
-      return node.isClearOnSides();
+      return BlockUtil.isClearOnSides(
+        new int[] { block.getX(), block.getY(), block.getZ() },
+        new int[] { parentBlock.getX(), parentBlock.getY(), parentBlock.getZ() }
+      );
     }
 
     return false;
@@ -118,7 +119,7 @@ public class NodeUtil extends BlockUtil {
     while (y1 != y2) {
       BlockPos curBlock = block.add(0, rem, 0);
 
-      if (!isBlockSolid(curBlock)) return false;
+      if (!BlockUtil.isBlockSolid(curBlock)) return false;
       y2--;
       rem--;
     }

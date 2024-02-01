@@ -5,10 +5,12 @@ import com.finder.calculator.util.Callback;
 import com.finder.calculator.util.CustomCosts;
 import com.finder.calculator.util.Node;
 import com.finder.util.BlockUtil;
+import com.finder.util.MathUtil;
+import com.finder.util.TimeUtil;
 import net.minecraft.util.Vec3;
 
 // For now this does not account for hypixel skyblock's high jump. Although i am not sure if it makes a difference.
-public class Config extends BlockUtil {
+public class Config {
 
   public Node start;
   public Node end;
@@ -27,13 +29,13 @@ public class Config extends BlockUtil {
   ) {
     this.callback = callback;
 
-    double dist = getTimeReqMS(
+    double dist = TimeUtil.getTimeReqMS(
       this.blocksPerSecond,
-      distanceFromTo(startBlock, endBlock)
+      MathUtil.distanceFromTo(startBlock, endBlock)
     );
 
-    this.start = new Node(dist, null, fromVecToBP(startBlock));
-    this.end = new Node(dist, null, fromVecToBP(endBlock));
+    this.start = new Node(dist, null, BlockUtil.fromVecToBP(startBlock));
+    this.end = new Node(dist, null, BlockUtil.fromVecToBP(endBlock));
     this.maxIter = maxIter;
     this.blocksPerSecond = blocksPerSecond;
     this.walkerErrorCoef = blocksPerSecond * blocksPerSecond;
@@ -48,12 +50,12 @@ public class Config extends BlockUtil {
     CustomCosts costs
   ) {
     this.callback = callback;
-    double dist = getTimeReqMS(
+    double dist = TimeUtil.getTimeReqMS(
       this.blocksPerSecond,
-      distanceFromTo(startBlock, endBlock)
+      MathUtil.distanceFromTo(startBlock, endBlock)
     );
-    this.start = new Node(dist, null, fromVecToBP(startBlock));
-    this.end = new Node(dist, null, fromVecToBP(endBlock));
+    this.start = new Node(dist, null, BlockUtil.fromVecToBP(startBlock));
+    this.end = new Node(dist, null, BlockUtil.fromVecToBP(endBlock));
     this.maxIter = maxIter;
     this.blocksPerSecond = blocksPerSecond;
     this.costs = costs;
@@ -68,12 +70,12 @@ public class Config extends BlockUtil {
     Callback callback
   ) {
     this.callback = callback;
-    double dist = getTimeReqMS(
+    double dist = TimeUtil.getTimeReqMS(
       this.blocksPerSecond,
-      distanceFromTo(startBlock, endBlock)
+      MathUtil.distanceFromTo(startBlock, endBlock)
     );
-    this.start = new Node(dist, null, fromVecToBP(startBlock));
-    this.end = new Node(dist, null, fromVecToBP(endBlock));
+    this.start = new Node(dist, null, BlockUtil.fromVecToBP(startBlock));
+    this.end = new Node(dist, null, BlockUtil.fromVecToBP(endBlock));
     this.maxIter = maxIter;
     this.blocksPerSecond = CostConst.WALK_ONE_BLOCK_COST * 20;
     this.walkerErrorCoef = blocksPerSecond * blocksPerSecond;

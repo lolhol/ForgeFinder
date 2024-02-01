@@ -2,10 +2,14 @@ package com.finder.calculator;
 
 import com.finder.calculator.config.Config;
 import com.finder.calculator.errors.NoPathException;
+import com.finder.calculator.util.BetterBlockPos;
 import com.finder.calculator.util.Node;
 import com.finder.calculator.util.NodeListManager;
+import com.finder.calculator.util.NodeUtil;
 import com.finder.debug.util.RenderUtil;
 import com.finder.util.ChatUtil;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.PriorityQueue;
 import net.minecraft.util.BlockPos;
 import org.apache.commons.lang3.tuple.Triple;
@@ -68,9 +72,11 @@ public class AStarPathfinder {
     BlockPos endBP = new BlockPos(config.end.x, config.end.y, config.end.z);
 
     final NodeListManager manager = new NodeListManager(startBP);
+    final HashSet<BetterBlockPos> closedSet = new HashSet<>();
     PriorityQueue<Node> openSet = new PriorityQueue<>();
+    final HashSet<BetterBlockPos> openHash = new HashSet<>();
 
-    manager.addOpenHash(config.start);
+    openHash.add(new BetterBlockPos(config.start.getPosInt()));
     openSet.add(config.start);
 
     int i = 0;
@@ -85,28 +91,34 @@ public class AStarPathfinder {
         return best;
       }
 
-      for (Node n : best.genNodesAround(config.end)) {
-        if (manager.isClosed(n) || manager.isNodeInOpen(n)) continue;
+      for (BetterBlockPos n : best.genNodePosAround()) {
+        if (closedSet.contains(n) || openHash.contains(n)) continue;
 
-        boolean[] interactions = n.isAbleToInteract(n);
+        boolean[] interactions = NodeUtil.isAbleToInteract(
+          new int[] { n.x, n.y, n.z },
+          best
+        );
         if (!interactions[0] && !interactions[1] && !interactions[2]) {
           continue;
         }
 
-        n.generateCostsForNode(endBP, interactions, config.blocksPerSecond);
+        Node node = new Node(0, best, n);
+        node.generateCostsForNode(endBP, interactions, config.blocksPerSecond);
 
         if (config.costs != null) {
-          Triple<Double, Double, Double> costs = config.costs.addCost(n);
-          n.totalCost += costs.getRight() + costs.getLeft() + costs.getMiddle();
+          Triple<Double, Double, Double> costs = config.costs.addCost(node);
+          node.totalCost +=
+            costs.getRight() + costs.getLeft() + costs.getMiddle();
         }
 
-        openSet.add(n);
-        manager.addOpenHash(n);
+        openSet.add(node);
+        openHash.add(n);
+        RenderUtil.addBlockToRenderSync(node.getBlockPos());
       }
 
-      manager.addNodeClosed(best);
-      manager.removeNodeOpen(best);
-      RenderUtil.addBlockToRenderSync(best.getBlockPos());
+      closedSet.add(best.getBetterBP());
+      //openHash.remove(best.getPosInt());
+      //manager.removeNodeOpen(best);
 
       i++;
       nodesConsidered++;

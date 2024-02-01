@@ -11,21 +11,25 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
 
-public class BlockUtil extends MathUtil {
+public class BlockUtil {
 
-  public BlockPos fromVecToBP(Vec3 vec) {
+  public static BlockPos fromVecToBP(Vec3 vec) {
     return new BlockPos(vec.xCoord, vec.yCoord, vec.zCoord);
   }
 
-  public Vec3 fromBPToVec(BlockPos bp) {
+  public static Vec3 fromBPToVec(BlockPos bp) {
     return new Vec3(bp.getX(), bp.getY(), bp.getZ());
   }
 
-  public Block getBlock(BlockPos block) {
+  public static Block getBlock(BlockPos block) {
     return ForgeFinder.MC.theWorld.getBlockState(block).getBlock();
   }
 
-  public Vec3[] getFourPointsAbout(Vec3 vec1, Vec3 vec2, double distBetween) {
+  public static Vec3[] getFourPointsAbout(
+    Vec3 vec1,
+    Vec3 vec2,
+    double distBetween
+  ) {
     double d1 = vec2.xCoord - vec1.xCoord;
     double d2 = vec2.zCoord - vec1.zCoord;
 
@@ -48,7 +52,7 @@ public class BlockUtil extends MathUtil {
     return vecs;
   }
 
-  public boolean isBlockSolid(BlockPos block) {
+  public static boolean isBlockSolid(BlockPos block) {
     Block blockType = getBlock(block);
     return (
       blockType != Blocks.water &&
@@ -62,7 +66,7 @@ public class BlockUtil extends MathUtil {
     );
   }
 
-  public boolean isBlockWalkable(BlockPos block) {
+  public static boolean isBlockWalkable(BlockPos block) {
     Block blockType = getBlock(block);
     return (
       blockType == Blocks.air ||
@@ -73,7 +77,7 @@ public class BlockUtil extends MathUtil {
     );
   }
 
-  public BlockPos bresenham(Vec3 start, Vec3 end) {
+  public static BlockPos bresenham(Vec3 start, Vec3 end) {
     int x1 = MathHelper.floor_double(end.xCoord);
     int y1 = MathHelper.floor_double(end.yCoord);
     int z1 = MathHelper.floor_double(end.zCoord);
@@ -186,7 +190,7 @@ public class BlockUtil extends MathUtil {
     return null;
   }
 
-  public List<Node> shortenPath(List<Node> init) {
+  public static List<Node> shortenPath(List<Node> init) {
     List<Node> newList = new ArrayList<>();
     //newList.add(init.get(init.size() - 1));
     Node curNode = null;
@@ -208,5 +212,26 @@ public class BlockUtil extends MathUtil {
     }
 
     return newList;
+  }
+
+  public static boolean isOnSide(int[] block1, int[] block2) {
+    return (
+      MathUtil.absAbsSubtract(block1[0], block2[0]) >= 1 &&
+      MathUtil.absAbsSubtract(block1[2], block2[2]) >= 1
+    );
+  }
+
+  public static boolean isClearOnSides(int[] bp1, int[] bp2) {
+    double changeX = bp2[0] - bp1[0];
+    double changeZ = bp2[2] - bp1[2];
+
+    BlockPos blockPos = new BlockPos(bp1[0], bp1[1], bp1[2]);
+    //NodeUtil
+    return (
+      !BlockUtil.isBlockSolid(blockPos.add(0, 0, changeZ)) &&
+      !BlockUtil.isBlockSolid(blockPos.add(changeX, 0, 0)) &&
+      !BlockUtil.isBlockSolid(blockPos.add(0, 1, changeZ)) &&
+      !BlockUtil.isBlockSolid(blockPos.add(changeX, 1, 0))
+    );
   }
 }
