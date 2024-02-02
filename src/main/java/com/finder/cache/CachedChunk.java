@@ -6,12 +6,12 @@ import java.util.BitSet;
 
 public class CachedChunk {
 
-  private BitSet[] blockData;
+  private final BitSet[] blockData;
   private final int[] position;
 
-  public CachedChunk(BitSet[] blockData, int[] xyz) {
+  public CachedChunk(BitSet[] blockData, int[] position) {
     this.blockData = blockData;
-    this.position = xyz;
+    this.position = position;
   }
 
   public CacheState isBlockSolidInChunk(int xChunk, int yChunk, int zChunk) {

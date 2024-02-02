@@ -1,5 +1,7 @@
 package com.finder.cache;
 
+import com.finder.util.ChunkPosByte;
+import com.finder.util.ChunkPosInt;
 import com.finder.util.MathUtil;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -13,11 +15,11 @@ import net.minecraft.world.chunk.Chunk;
 public class ChunkCachefier extends Thread {
 
   int bitsCached = 0;
-  final Map<int[], CachedChunk> cachedChunksMap;
+  final Map<ChunkPosInt, CachedChunk> cachedChunksMap;
   List<Chunk> chunksWorkLoad = new ArrayList<>();
 
   public ChunkCachefier(
-    final Map<int[], CachedChunk> cachedChunksMap,
+    final Map<ChunkPosInt, CachedChunk> cachedChunksMap,
     Chunk chunkToCache
   ) {
     this.cachedChunksMap = cachedChunksMap;
@@ -29,7 +31,10 @@ public class ChunkCachefier extends Thread {
     while (!chunksWorkLoad.isEmpty()) {
       Chunk chunk = chunksWorkLoad.remove(0);
 
-      int[] chunkPosInt = new int[] { chunk.xPosition, chunk.zPosition };
+      ChunkPosInt chunkPosInt = new ChunkPosInt(
+        chunk.xPosition,
+        chunk.zPosition
+      );
 
       BlockPos bp = new BlockPos(chunk.xPosition * 16, 0, chunk.zPosition * 16);
       BitSet[] blockData = new BitSet[256 / 16];
@@ -67,7 +72,10 @@ public class ChunkCachefier extends Thread {
       synchronized (cachedChunksMap) {
         cachedChunksMap.put(
           chunkPosInt,
-          new CachedChunk(blockData, chunkPosInt)
+          new CachedChunk(
+            blockData,
+            new int[] { chunkPosInt.x << 4, 0, chunkPosInt.y << 4 }
+          )
         );
       }
       //bitsCached = 0;

@@ -1,18 +1,16 @@
-package com.finder.calculator.util.set;
+package com.finder.util;
 
-import com.finder.calculator.util.BetterBlockPos;
-
-public class ChunkPos {
+public class ChunkPosByte {
 
   public final byte x;
   public final byte z;
 
-  public ChunkPos(byte x, byte z) {
+  public ChunkPosByte(byte x, byte z) {
     this.x = x;
     this.z = z;
   }
 
-  public ChunkPos(byte[] pos) {
+  public ChunkPosByte(byte[] pos) {
     this.x = pos[0];
     this.z = pos[1];
   }
@@ -21,7 +19,7 @@ public class ChunkPos {
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
-    ChunkPos that = (ChunkPos) o;
+    ChunkPosByte that = (ChunkPosByte) o;
     return x == that.x && z == that.z;
   }
 

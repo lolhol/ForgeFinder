@@ -2,6 +2,7 @@ package com.finder.calculator.util.set;
 
 import com.finder.calculator.util.BetterBlockPos;
 import com.finder.calculator.util.Node;
+import com.finder.util.ChunkPosByte;
 import com.finder.util.MathUtil;
 import java.util.HashMap;
 import net.minecraft.util.BlockPos;
@@ -9,7 +10,7 @@ import net.minecraft.util.BlockPos;
 public class SetManager {
 
   private final int[] START_CHUNK_POS;
-  private final HashMap<ChunkPos, SetChunk> chunks = new HashMap<>();
+  private final HashMap<ChunkPosByte, SetChunk> chunks = new HashMap<>();
 
   // above the max of 256 chunks. IK IK this not gon be efficient if you have > 256 chunks pathing but i mean... we can jst copy
   // the chunks when we get to > 256 i mean ehhh thats like 65k chunks worth of data like bruh...
@@ -28,7 +29,7 @@ public class SetManager {
   }
 
   public void add(Node node) {
-    ChunkPos nodePosChunk = getPositionChunk(node);
+    ChunkPosByte nodePosChunk = getPositionChunk(node);
     if (chunks.containsKey(nodePosChunk)) {
       chunks.get(nodePosChunk).addClosed(node, true);
     } else {
@@ -48,8 +49,8 @@ public class SetManager {
     }
   }
 
-  public ChunkPos getPositionChunk(Node node) {
-    return new ChunkPos(
+  public ChunkPosByte getPositionChunk(Node node) {
+    return new ChunkPosByte(
       new byte[] {
         (byte) (MathUtil.getPositionChunk(node.x) - START_CHUNK_POS[0]),
         (byte) (MathUtil.getPositionChunk(node.z) - START_CHUNK_POS[1]),
@@ -57,8 +58,8 @@ public class SetManager {
     );
   }
 
-  public ChunkPos getPositionChunk(BetterBlockPos node) {
-    return new ChunkPos(
+  public ChunkPosByte getPositionChunk(BetterBlockPos node) {
+    return new ChunkPosByte(
       new byte[] {
         (byte) (MathUtil.getPositionChunk(node.x) - START_CHUNK_POS[0]),
         (byte) (MathUtil.getPositionChunk(node.z) - START_CHUNK_POS[1]),
@@ -67,16 +68,16 @@ public class SetManager {
   }
 
   public boolean isClosedNode(BetterBlockPos bp) {
-    ChunkPos chunkPosition = getPositionChunk(bp);
-    if (chunks.containsKey(chunkPosition)) {
-      return chunks.get(chunkPosition).isClosed(bp);
+    ChunkPosByte chunkPositionByte = getPositionChunk(bp);
+    if (chunks.containsKey(chunkPositionByte)) {
+      return chunks.get(chunkPositionByte).isClosed(bp);
     }
 
     return false;
   }
 
   public void updateOpenState(BetterBlockPos bp, boolean state) {
-    ChunkPos nodePosChunk = getPositionChunk(bp);
+    ChunkPosByte nodePosChunk = getPositionChunk(bp);
     if (chunks.containsKey(nodePosChunk)) {
       chunks.get(nodePosChunk).addOpen(bp, true);
     } else {
@@ -92,7 +93,7 @@ public class SetManager {
   }
 
   public void updateOpenState(Node bp, boolean state) {
-    ChunkPos nodePosChunk = getPositionChunk(bp);
+    ChunkPosByte nodePosChunk = getPositionChunk(bp);
     if (chunks.containsKey(nodePosChunk)) {
       chunks.get(nodePosChunk).addOpen(bp, true);
     } else {
@@ -108,9 +109,9 @@ public class SetManager {
   }
 
   public boolean isOpenNode(BetterBlockPos bp) {
-    ChunkPos chunkPosition = getPositionChunk(bp);
-    if (chunks.containsKey(chunkPosition)) {
-      return chunks.get(chunkPosition).isOpen(bp);
+    ChunkPosByte chunkPositionByte = getPositionChunk(bp);
+    if (chunks.containsKey(chunkPositionByte)) {
+      return chunks.get(chunkPositionByte).isOpen(bp);
     }
 
     return false;

@@ -3,20 +3,23 @@ package com.finder.cache;
 import com.finder.ForgeFinder;
 import com.finder.cache.util.CacheState;
 import com.finder.events.ChunkLoadEvent;
+import com.finder.util.ChunkPosByte;
+import com.finder.util.ChunkPosInt;
 import java.util.*;
 import net.minecraft.util.BlockPos;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
+// TODO: re-write @this
 public class CacheManager {
 
-  ChunkCachefier chunkCachefierThread = null;
   boolean isCaching;
+  ChunkCachefier chunkCachefierThread = null;
   List<int[]> chunksNotCached = new ArrayList<>();
-  private final Map<int[], CachedChunk> cachedChunks =
+  private final Map<ChunkPosInt, CachedChunk> cachedChunks =
     Collections.synchronizedMap(new HashMap<>());
 
-  private final HashSet<int[]> cachedChunksPositions = new HashSet<>();
+  private final HashSet<ChunkPosInt> cachedChunksPositions = new HashSet<>();
 
   public CacheManager(boolean startCaching) {
     this.isCaching = startCaching;
@@ -24,14 +27,13 @@ public class CacheManager {
 
   @SubscribeEvent
   public void onChunkLoad(ChunkLoadEvent event) {
+    final Chunk chunk = event.getChunk();
     if (!isCaching) {
-      Chunk chunk = event.getChunk();
       chunksNotCached.add(new int[] { chunk.xPosition, chunk.zPosition });
       return;
     }
 
-    Chunk chunk = event.getChunk();
-    int[] chunkPosInt = new int[] { chunk.xPosition, chunk.zPosition };
+    ChunkPosInt chunkPosInt = new ChunkPosInt(chunk.xPosition, chunk.zPosition);
 
     if (!chunksNotCached.isEmpty()) {
       for (int[] c : chunksNotCached) {
@@ -39,14 +41,14 @@ public class CacheManager {
           c[0],
           c[1]
         );
-        addChunkToCache(notCachedChunk, c);
+        addChunkToCache(notCachedChunk, chunkPosInt);
       }
     }
 
     addChunkToCache(chunk, chunkPosInt);
   }
 
-  private void addChunkToCache(Chunk chunk, int[] chunkPosInt) {
+  private void addChunkToCache(Chunk chunk, ChunkPosInt chunkPosInt) {
     if (!cachedChunksPositions.contains(chunkPosInt)) {
       if (chunkCachefierThread == null || !chunkCachefierThread.isAlive()) {
         chunkCachefierThread = new ChunkCachefier(cachedChunks, chunk);
@@ -60,7 +62,7 @@ public class CacheManager {
   }
 
   public CachedChunk getCachedChunk(int x, int z) {
-    return cachedChunks.get(new int[] { x >> 4, z >> 4 });
+    return cachedChunks.get(new ChunkPosInt(x >> 4, z >> 4));
   }
 
   public CacheState getBlockInfoCached(int xPos, int yPos, int zPos) {
@@ -69,7 +71,7 @@ public class CacheManager {
 
   public boolean isBlockCached(BlockPos bp) {
     return cachedChunksPositions.contains(
-      new int[] { bp.getX() >> 4, bp.getZ() >> 4 }
+      new ChunkPosInt(bp.getX() >> 4, bp.getZ() >> 4)
     );
   }
 }
