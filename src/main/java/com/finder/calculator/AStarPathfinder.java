@@ -4,12 +4,9 @@ import com.finder.calculator.config.Config;
 import com.finder.calculator.errors.NoPathException;
 import com.finder.calculator.util.BetterBlockPos;
 import com.finder.calculator.util.Node;
-import com.finder.calculator.util.NodeListManager;
 import com.finder.calculator.util.NodeUtil;
-import com.finder.calculator.util.set.ClosedSetManager;
-import com.finder.debug.util.RenderUtil;
+import com.finder.calculator.util.set.SetManager;
 import com.finder.util.ChatUtil;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.PriorityQueue;
 import net.minecraft.util.BlockPos;
@@ -74,13 +71,14 @@ public class AStarPathfinder {
 
     //final NodeListManager manager = new NodeListManager(startBP);
     //final HashSet<BetterBlockPos> closedSet = new HashSet<>();
-    final ClosedSetManager closedSetManager = new ClosedSetManager(
-      config.start.getBlockPos()
-    );
-    PriorityQueue<Node> openSet = new PriorityQueue<>();
-    final HashSet<BetterBlockPos> openHash = new HashSet<>();
+    final SetManager setManager = new SetManager(config.start.getBlockPos());
 
-    openHash.add(new BetterBlockPos(config.start.getPosInt()));
+    PriorityQueue<Node> openSet = new PriorityQueue<>();
+
+    setManager.updateOpenState(
+      new BetterBlockPos(config.start.getPosInt()),
+      true
+    );
     openSet.add(config.start);
 
     int i = 0;
@@ -96,7 +94,7 @@ public class AStarPathfinder {
       }
 
       for (BetterBlockPos n : best.genNodePosAround()) {
-        if (closedSetManager.isClosedNode(n) || openHash.contains(n)) continue;
+        if (setManager.isClosedNode(n) || setManager.isOpenNode(n)) continue;
 
         boolean[] interactions = NodeUtil.isAbleToInteract(
           new int[] { n.x, n.y, n.z },
@@ -116,14 +114,12 @@ public class AStarPathfinder {
         }
 
         openSet.add(node);
-        openHash.add(n);
+        setManager.updateOpenState(n, true);
         //RenderUtil.addBlockToRenderSync(node.getBlockPos());
       }
 
-      closedSetManager.add(best);
-
-      openHash.remove(new BetterBlockPos(new int[] { best.x, best.y, best.z }));
-      //manager.removeNodeOpen(best);
+      setManager.add(best);
+      setManager.updateOpenState(best, false);
 
       i++;
       nodesConsidered++;
