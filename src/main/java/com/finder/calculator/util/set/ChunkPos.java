@@ -27,6 +27,9 @@ public class ChunkPos {
 
   @Override
   public int hashCode() {
-    return (this.z * 31) * 31 + this.x;
+    int result = 17;
+    result = 31 * result + x;
+    result = 31 * result + z;
+    return result;
   }
 }

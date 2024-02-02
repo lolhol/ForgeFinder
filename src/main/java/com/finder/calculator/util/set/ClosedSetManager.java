@@ -6,6 +6,7 @@ import com.finder.util.ChatUtil;
 import com.finder.util.MathUtil;
 import java.util.HashMap;
 import net.minecraft.util.BlockPos;
+import net.minecraft.world.chunk.Chunk;
 
 public class ClosedSetManager {
 
@@ -37,13 +38,15 @@ public class ClosedSetManager {
         nodePosChunk,
         new ClosedSetChunk(
           new int[] {
-            MathUtil.getPositionChunk(node.x),
-            MathUtil.getPositionChunk(node.z),
+            MathUtil.getPositionChunk(node.x) << 4,
+            MathUtil.getPositionChunk(node.z) << 4,
           },
           node
         )
       );
-      //ChatUtil.sendChat(nodePosChunk.x + " ! " + nodePosChunk.z);
+      /*ChatUtil.sendChat(
+        String.valueOf(chunks.containsKey(getPositionChunk(node)))
+      );*/
     }
   }
 

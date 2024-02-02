@@ -2,13 +2,14 @@ package com.finder.calculator.util.set;
 
 import com.finder.calculator.util.BetterBlockPos;
 import com.finder.calculator.util.Node;
+import com.finder.util.ChatUtil;
 import java.util.BitSet;
 import net.minecraft.util.BlockPos;
 
 public class ClosedSetChunk {
 
-  private final BitSet[] chunkData = new BitSet[16 * 15];
-  private int[] pos = null;
+  private final BitSet[] chunkData = new BitSet[16 * 16];
+  private final int[] pos;
 
   public ClosedSetChunk(int[] chunkPos) {
     this.pos = chunkPos;
@@ -19,8 +20,8 @@ public class ClosedSetChunk {
     add(initAdd, true);
   }
 
-  public ClosedSetChunk(int[] chunkPos, Node initAdd) {
-    this.pos = chunkPos;
+  public ClosedSetChunk(int[] chunkPosBP, Node initAdd) {
+    this.pos = chunkPosBP;
     add(initAdd, true);
   }
 
@@ -33,8 +34,8 @@ public class ClosedSetChunk {
       chunkData[bpPos.getY()] = new BitSet(16 * 16);
     }
 
-    int chunkX = pos[0] - bpPos.getX();
-    int chunkY = pos[1] - bpPos.getZ();
+    int chunkX = bpPos.getX() - pos[0];
+    int chunkY = bpPos.getZ() - pos[1];
 
     chunkData[bpPos.getY()].set(chunkX * 16 + chunkY, isClosed);
   }
@@ -44,8 +45,8 @@ public class ClosedSetChunk {
       chunkData[bpPos[1]] = new BitSet(16 * 16);
     }
 
-    int chunkX = pos[0] - bpPos[0];
-    int chunkY = pos[1] - bpPos[2];
+    int chunkX = bpPos[0] - pos[0];
+    int chunkY = bpPos[2] - pos[1];
 
     chunkData[bpPos[1]].set(chunkX * 16 + chunkY, isClosed);
   }
@@ -55,8 +56,8 @@ public class ClosedSetChunk {
       chunkData[bpPos.y] = new BitSet(16 * 16);
     }
 
-    int chunkX = pos[0] - bpPos.x;
-    int chunkY = pos[1] - bpPos.z;
+    int chunkX = bpPos.x - pos[0];
+    int chunkY = bpPos.z - pos[1];
 
     chunkData[bpPos.y].set(chunkX * 16 + chunkY, isClosed);
   }
@@ -64,8 +65,8 @@ public class ClosedSetChunk {
   public boolean isClosed(BlockPos bpPos) {
     if (chunkData[bpPos.getY()] == null) return false;
 
-    int chunkX = pos[0] - bpPos.getX();
-    int chunkY = pos[1] - bpPos.getZ();
+    int chunkX = bpPos.getX() - pos[0];
+    int chunkY = bpPos.getZ() - pos[1];
 
     return chunkData[bpPos.getY()].get(chunkX * 16 + chunkY);
   }
@@ -73,8 +74,8 @@ public class ClosedSetChunk {
   public boolean isClosed(BetterBlockPos bpPos) {
     if (chunkData[bpPos.y] == null) return false;
 
-    int chunkX = pos[0] - bpPos.x;
-    int chunkY = pos[1] - bpPos.z;
+    int chunkX = bpPos.x - pos[0];
+    int chunkY = bpPos.z - pos[1];
 
     return chunkData[bpPos.y].get(chunkX * 16 + chunkY);
   }
@@ -82,8 +83,8 @@ public class ClosedSetChunk {
   public boolean isClosed(BlockPos bpPos, int[] chunkPos) {
     if (chunkData[bpPos.getY()] == null) return false;
 
-    int chunkX = pos[0] - bpPos.getX();
-    int chunkY = pos[1] - bpPos.getZ();
+    int chunkX = bpPos.getX() - pos[0];
+    int chunkY = bpPos.getZ() - pos[1];
 
     return chunkData[bpPos.getY()].get(chunkX * 16 + chunkY);
   }

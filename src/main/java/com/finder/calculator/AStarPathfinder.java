@@ -121,6 +121,7 @@ public class AStarPathfinder {
       }
 
       closedSetManager.add(best);
+
       openHash.remove(new BetterBlockPos(new int[] { best.x, best.y, best.z }));
       //manager.removeNodeOpen(best);
 
