@@ -1,6 +1,5 @@
 package com.finder.util;
 
-import com.finder.ForgeFinder;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.Vec3;
 
@@ -76,5 +75,15 @@ public class MathUtil {
 
   public static int getPositionChunk(int pos) {
     return pos >> 4;
+  }
+
+  public static int getPositionIndex3DList(
+    int x,
+    int y,
+    int z,
+    int height,
+    int width
+  ) {
+    return z * (width * height) + y * width + x;
   }
 }

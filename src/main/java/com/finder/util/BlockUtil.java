@@ -1,11 +1,11 @@
 package com.finder.util;
 
 import com.finder.ForgeFinder;
+import com.finder.cache.util.CacheState;
 import com.finder.calculator.util.Node;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.block.Block;
-import net.minecraft.init.Blocks;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.MathHelper;
@@ -53,7 +53,22 @@ public class BlockUtil {
   }
 
   public static boolean isBlockSolid(BlockPos block) {
-    Block blockType = getBlock(block);
+    //RenderUtil.addBlockToRenderSync(new BlockPos(n.x, n.y, n.z));
+    //ChatUtil.sendChat("!!!");
+    boolean res =
+      ForgeFinder.CACHE_MANAGER.getBlockInfoCached(
+        block.getX(),
+        block.getY(),
+        block.getZ()
+      ) ==
+      CacheState.EXISTS_YES;
+
+    if (!res) {
+      //RenderUtil.addBlockToRenderSync(block);
+    }
+
+    return (res);
+    /*Block blockType = getBlock(block);
     return (
       blockType != Blocks.water &&
       blockType != Blocks.lava &&
@@ -63,18 +78,26 @@ public class BlockUtil {
       blockType != Blocks.yellow_flower &&
       blockType != Blocks.double_plant &&
       blockType != Blocks.flowing_water
-    );
+    );*/
   }
 
   public static boolean isBlockWalkable(BlockPos block) {
-    Block blockType = getBlock(block);
+    return (
+      ForgeFinder.CACHE_MANAGER.getBlockInfoCached(
+        block.getX(),
+        block.getY(),
+        block.getZ()
+      ) ==
+      CacheState.EXISTS_NO
+    );
+    /*Block blockType = getBlock(block);
     return (
       blockType == Blocks.air ||
       blockType == Blocks.red_flower ||
       blockType == Blocks.tallgrass ||
       blockType == Blocks.yellow_flower ||
       blockType == Blocks.double_plant
-    );
+    );*/
   }
 
   public static BlockPos bresenham(Vec3 start, Vec3 end) {

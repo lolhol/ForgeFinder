@@ -7,7 +7,6 @@ import com.finder.calculator.util.Node;
 import com.finder.calculator.util.NodeUtil;
 import com.finder.calculator.util.set.SetManager;
 import com.finder.util.ChatUtil;
-import java.util.HashSet;
 import java.util.PriorityQueue;
 import net.minecraft.util.BlockPos;
 import org.apache.commons.lang3.tuple.Triple;

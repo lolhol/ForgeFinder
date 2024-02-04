@@ -1,6 +1,7 @@
 package com.finder.cache;
 
 import com.finder.cache.util.CacheState;
+import com.finder.calculator.util.BetterBlockPos;
 import com.finder.util.MathUtil;
 import java.util.BitSet;
 
@@ -20,9 +21,37 @@ public class CachedChunk {
       return CacheState.NOEXISTANCE;
     }
 
-    int position = MathUtil.getPositionIndex(xChunk, listPos, zChunk);
-    return blockData[position].isEmpty()
-      ? CacheState.EXISTS_NO
-      : CacheState.EXISTS_YES;
+    // FIXME: error!
+    int position = MathUtil.getPositionIndex3DList(
+      xChunk - this.position[0],
+      Math.abs(listPos << 4 - yChunk),
+      zChunk - this.position[1],
+      16,
+      16
+    );
+
+    //RenderUtil.addBlockToRenderSync(new BlockPos(xChunk, yChunk, zChunk));
+
+    //ChatUtil.sendChat(String.valueOf(zChunk - this.position[1]) + " !");
+
+    return blockData[listPos].get(position)
+      ? CacheState.EXISTS_YES
+      : CacheState.EXISTS_NO;
+  }
+
+  public boolean getBlockStateChunk(BetterBlockPos blockPosition) {
+    int positionChunkX = position[0] - blockPosition.x;
+    int positionChunkY = blockPosition.y >> 4;
+    int positionChunkZ = position[1] - blockPosition.z;
+
+    return blockData[positionChunkY].get(
+        MathUtil.getPositionIndex3DList(
+          positionChunkX,
+          Math.abs(positionChunkY << 4 - blockPosition.y),
+          positionChunkZ,
+          16,
+          16
+        )
+      );
   }
 }

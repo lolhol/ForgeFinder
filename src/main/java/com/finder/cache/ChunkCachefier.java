@@ -1,6 +1,6 @@
 package com.finder.cache;
 
-import com.finder.util.ChunkPosByte;
+import com.finder.util.ChatUtil;
 import com.finder.util.ChunkPosInt;
 import com.finder.util.MathUtil;
 import java.util.ArrayList;
@@ -36,23 +36,26 @@ public class ChunkCachefier extends Thread {
         chunk.zPosition
       );
 
-      BlockPos bp = new BlockPos(chunk.xPosition * 16, 0, chunk.zPosition * 16);
-      BitSet[] blockData = new BitSet[256 / 16];
+      BlockPos bp = new BlockPos(chunk.xPosition << 4, 0, chunk.zPosition << 4);
+      BitSet[] blockData = new BitSet[16];
       int realY = 0;
       for (int i = 0; i < 16; i++) {
         int cAir = 0;
 
-        BitSet set = new BitSet();
+        BitSet set = new BitSet(4096);
         for (int y = 0; y < 16; y++) {
           for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
-              //bitsCached++;
+              bitsCached++;
 
               if (isBlockSolid(chunk.getBlock(bp.add(x, realY, z)))) {
-                set.set(MathUtil.getPositionIndex(x, y, z), true);
+                set.set(MathUtil.getPositionIndex3DList(x, y, z, 16, 16), true);
               } else {
                 cAir++;
-                set.set(MathUtil.getPositionIndex(x, y, z), false);
+                set.set(
+                  MathUtil.getPositionIndex3DList(x, y, z, 16, 16),
+                  false
+                );
               }
             }
           }
@@ -61,12 +64,13 @@ public class ChunkCachefier extends Thread {
         }
 
         if (cAir == 4096) {
-          //bitsCached -= cAir;
           set.clear();
           blockData[i] = null;
+        } else {
+          blockData[i] = set;
         }
 
-        blockData[i] = set;
+        ChatUtil.sendChat("Bits cached so far: " + bitsCached);
       }
 
       synchronized (cachedChunksMap) {
@@ -74,11 +78,18 @@ public class ChunkCachefier extends Thread {
           chunkPosInt,
           new CachedChunk(
             blockData,
-            new int[] { chunkPosInt.x << 4, 0, chunkPosInt.y << 4 }
+            new int[] { chunkPosInt.x << 4, chunkPosInt.y << 4 }
           )
         );
       }
-      //bitsCached = 0;
+
+      if (chunksWorkLoad.isEmpty()) {
+        try {
+          Thread.sleep(1000);
+        } catch (InterruptedException e) {
+          throw new RuntimeException(e);
+        }
+      }
     }
   }
 
