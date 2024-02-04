@@ -61,7 +61,7 @@ public class Test1 {
         new Config(
           ForgeFinder.MC.thePlayer.getPositionVector(),
           new Vec3(ints.get(1), ints.get(2), ints.get(3)),
-          10000,
+          1000000,
           5,
           new Callback() {
             @Override

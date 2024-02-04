@@ -2,17 +2,42 @@ package com.finder.cache;
 
 import com.finder.cache.util.CacheState;
 import com.finder.calculator.util.BetterBlockPos;
+import com.finder.debug.util.RenderUtil;
+import com.finder.util.ChatUtil;
 import com.finder.util.MathUtil;
-import java.util.BitSet;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import java.util.*;
+import net.minecraft.block.Block;
+import net.minecraft.init.Blocks;
+import net.minecraft.util.BlockPos;
 
 public class CachedChunk {
 
   private final BitSet[] blockData;
+  private final Int2ObjectOpenHashMap<String> special;
   private final int[] position;
 
-  public CachedChunk(BitSet[] blockData, int[] position) {
+  public CachedChunk(
+    BitSet[] blockData,
+    int[] position,
+    Map<String, List<BetterBlockPos>> keepTrackOfBlockLocations
+  ) {
     this.blockData = blockData;
     this.position = position;
+
+    if (!keepTrackOfBlockLocations.isEmpty()) {
+      special = new Int2ObjectOpenHashMap<>();
+      for (Map.Entry<String, List<BetterBlockPos>> entry : keepTrackOfBlockLocations.entrySet()) {
+        for (BetterBlockPos bp : entry.getValue()) {
+          special.put(
+            MathUtil.getPositionIndex3DList(bp.x, bp.y, bp.z, 256, 16),
+            entry.getKey()
+          );
+        }
+      }
+    } else {
+      special = null;
+    }
   }
 
   public CacheState isBlockSolidInChunk(int xChunk, int yChunk, int zChunk) {
@@ -21,18 +46,27 @@ public class CachedChunk {
       return CacheState.NOEXISTANCE;
     }
 
-    // FIXME: error!
+    int chunkX = xChunk - this.position[0];
+    int chunkZ = zChunk - this.position[1];
+
     int position = MathUtil.getPositionIndex3DList(
-      xChunk - this.position[0],
-      Math.abs(listPos << 4 - yChunk),
-      zChunk - this.position[1],
+      chunkX,
+      (yChunk) - (listPos << 4),
+      chunkZ,
       16,
       16
     );
 
-    //RenderUtil.addBlockToRenderSync(new BlockPos(xChunk, yChunk, zChunk));
-
-    //ChatUtil.sendChat(String.valueOf(zChunk - this.position[1]) + " !");
+    if (special != null) {
+      if (
+        special.get(
+          MathUtil.getPositionIndex3DList(chunkX, yChunk, chunkZ, 256, 16)
+        ) !=
+        null
+      ) {
+        return CacheState.NOT_SOLID_NOT_AIR;
+      }
+    }
 
     return blockData[listPos].get(position)
       ? CacheState.EXISTS_YES

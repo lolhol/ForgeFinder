@@ -6,10 +6,7 @@ import com.finder.calculator.util.Node;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.block.Block;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.MathHelper;
-import net.minecraft.util.Vec3;
+import net.minecraft.util.*;
 
 public class BlockUtil {
 
@@ -36,10 +33,9 @@ public class BlockUtil {
     double dist = Math.sqrt(d1 * d1 + d2 * d2);
 
     double revX = -d2;
-    double revY = d1;
 
     double X = (revX / dist) * distBetween;
-    double Y = (revY / dist) * distBetween;
+    double Y = (d1 / dist) * distBetween;
 
     Vec3[] vecs = new Vec3[4];
 
@@ -55,19 +51,13 @@ public class BlockUtil {
   public static boolean isBlockSolid(BlockPos block) {
     //RenderUtil.addBlockToRenderSync(new BlockPos(n.x, n.y, n.z));
     //ChatUtil.sendChat("!!!");
-    boolean res =
-      ForgeFinder.CACHE_MANAGER.getBlockInfoCached(
-        block.getX(),
-        block.getY(),
-        block.getZ()
-      ) ==
-      CacheState.EXISTS_YES;
+    CacheState res = ForgeFinder.CACHE_MANAGER.getBlockInfoCached(
+      block.getX(),
+      block.getY(),
+      block.getZ()
+    );
 
-    if (!res) {
-      //RenderUtil.addBlockToRenderSync(block);
-    }
-
-    return (res);
+    return res == CacheState.EXISTS_YES;
     /*Block blockType = getBlock(block);
     return (
       blockType != Blocks.water &&
@@ -82,14 +72,12 @@ public class BlockUtil {
   }
 
   public static boolean isBlockWalkable(BlockPos block) {
-    return (
-      ForgeFinder.CACHE_MANAGER.getBlockInfoCached(
-        block.getX(),
-        block.getY(),
-        block.getZ()
-      ) ==
-      CacheState.EXISTS_NO
+    CacheState state = ForgeFinder.CACHE_MANAGER.getBlockInfoCached(
+      block.getX(),
+      block.getY(),
+      block.getZ()
     );
+    return state == CacheState.EXISTS_NO;
     /*Block blockType = getBlock(block);
     return (
       blockType == Blocks.air ||
@@ -256,5 +244,9 @@ public class BlockUtil {
       !BlockUtil.isBlockSolid(blockPos.add(0, 1, changeZ)) &&
       !BlockUtil.isBlockSolid(blockPos.add(changeX, 1, 0))
     );
+  }
+
+  public static String blockToString(Block block) {
+    return block.getRegistryName();
   }
 }
