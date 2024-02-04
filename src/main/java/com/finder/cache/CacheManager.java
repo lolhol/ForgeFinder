@@ -3,6 +3,7 @@ package com.finder.cache;
 import com.finder.ForgeFinder;
 import com.finder.cache.util.CacheState;
 import com.finder.events.ChunkLoadEvent;
+import com.finder.util.ChatUtil;
 import com.finder.util.ChunkPosInt;
 import java.util.*;
 import net.minecraft.util.BlockPos;
@@ -13,6 +14,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 public class CacheManager {
 
   public boolean isCaching;
+  public int totalChunks = 0;
   ChunkCachefier chunkCachefierThread = null;
   List<int[]> chunksNotCached = new ArrayList<>();
   private final Map<ChunkPosInt, CachedChunk> cachedChunks =
@@ -59,6 +61,8 @@ public class CacheManager {
       }
 
       cachedChunksPositions.add(chunkPosInt);
+
+      totalChunks++;
     }
   }
 

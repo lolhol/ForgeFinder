@@ -13,6 +13,7 @@ import net.minecraft.world.chunk.Chunk;
 public class ChunkCachefier extends Thread {
 
   int bitsCached = 0;
+  int t = 0;
   private static final HashSet<Block> BLOCKS_TO_KEEP_TRACK_OF = new HashSet<>(
     Arrays.asList(
       Blocks.lava,
@@ -22,7 +23,9 @@ public class ChunkCachefier extends Thread {
     )
   );
   final Map<ChunkPosInt, CachedChunk> cachedChunksMap;
-  List<Chunk> chunksWorkLoad = new ArrayList<>();
+  final List<Chunk> chunksWorkLoad = Collections.synchronizedList(
+    new ArrayList<>()
+  );
 
   public ChunkCachefier(
     final Map<ChunkPosInt, CachedChunk> cachedChunksMap,
@@ -39,7 +42,11 @@ public class ChunkCachefier extends Thread {
         continue;
       }
 
-      Chunk chunk = chunksWorkLoad.remove(0);
+      Chunk chunk;
+      synchronized (chunksWorkLoad) {
+        chunk = chunksWorkLoad.remove(0);
+      }
+
       ChunkPosInt chunkPosInt = new ChunkPosInt(
         chunk.xPosition,
         chunk.zPosition
@@ -100,7 +107,13 @@ public class ChunkCachefier extends Thread {
           blockData[i] = set;
         }
 
-        ChatUtil.sendChat("Bits cached so far: " + bitsCached);
+        ChatUtil.sendChat(
+          "Bits cached so far: " +
+          bitsCached +
+          ". " +
+          chunksWorkLoad.size() +
+          " chunks left."
+        );
       }
 
       synchronized (cachedChunksMap) {
@@ -113,20 +126,13 @@ public class ChunkCachefier extends Thread {
           )
         );
       }
-
-      // TODO: add @this
-      if (chunksWorkLoad.size() < 5) {
-        try {
-          Thread.sleep(500);
-        } catch (InterruptedException e) {
-          throw new RuntimeException(e);
-        }
-      }
     }
   }
 
   public void addChunkToCacheLater(Chunk chunk) {
-    chunksWorkLoad.add(chunk);
+    synchronized (chunksWorkLoad) {
+      chunksWorkLoad.add(chunk);
+    }
   }
 
   private boolean isBlockSolid(Block blockType) {

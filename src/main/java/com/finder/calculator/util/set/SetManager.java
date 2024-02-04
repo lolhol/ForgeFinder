@@ -79,7 +79,7 @@ public class SetManager {
   public void updateOpenState(BetterBlockPos bp, boolean state) {
     ChunkPosByte nodePosChunk = getPositionChunk(bp);
     if (chunks.containsKey(nodePosChunk)) {
-      chunks.get(nodePosChunk).addOpen(bp, true);
+      chunks.get(nodePosChunk).addOpen(bp, state);
     } else {
       SetChunk chunk = new SetChunk(
         new int[] {
@@ -95,7 +95,7 @@ public class SetManager {
   public void updateOpenState(Node bp, boolean state) {
     ChunkPosByte nodePosChunk = getPositionChunk(bp);
     if (chunks.containsKey(nodePosChunk)) {
-      chunks.get(nodePosChunk).addOpen(bp, true);
+      chunks.get(nodePosChunk).addOpen(bp, state);
     } else {
       SetChunk chunk = new SetChunk(
         new int[] {

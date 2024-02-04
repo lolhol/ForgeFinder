@@ -114,7 +114,6 @@ public class AStarPathfinder {
         }
 
         openSet.add(node);
-        RenderUtil.addBlockToRenderSync(node.getBlockPos());
         setManager.updateOpenState(n, true);
       }
 
