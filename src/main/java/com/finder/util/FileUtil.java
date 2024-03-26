@@ -1,6 +1,8 @@
 package com.finder.util;
 
+import com.finder.ct.CTPortCommMsgType;
 import java.io.*;
+import java.util.Objects;
 
 public class FileUtil {
 
@@ -29,5 +31,26 @@ public class FileUtil {
     }
 
     return content.toString();
+  }
+
+  public static CTPortCommMsgType parseCTPortCommMsgType(String[] msg) {
+    if (!Objects.equals(msg[0], "FF")) return CTPortCommMsgType.UNREADABLE;
+
+    switch (msg[1]) {
+      case "ready":
+        return CTPortCommMsgType.READY;
+      case "start_pathing_pos":
+        return CTPortCommMsgType.START_PATHING_POS;
+      case "start_pathing_block":
+        return CTPortCommMsgType.START_PATHING_BLOCK;
+      case "abort_pathing":
+        return CTPortCommMsgType.ABORT_PATHING;
+      case "get_pathing_progress":
+        return CTPortCommMsgType.GET_PATHING_PROGRESS;
+      case "get_path":
+        return CTPortCommMsgType.GET_PATH;
+      default:
+        return CTPortCommMsgType.UNREADABLE;
+    }
   }
 }

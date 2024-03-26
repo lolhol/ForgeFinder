@@ -34,7 +34,7 @@ public class CTPortManager {
 
     try {
       // write base text to file to signify that Forge Finder is ready to intake commands
-      FileUtil.writeToFile("FF" + "\n" + "true", CTFileComm);
+      FileUtil.writeToFile("FF" + "\n" + "ready", CTFileComm);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -46,17 +46,19 @@ public class CTPortManager {
   public void onTick(TickEvent.ClientTickEvent event) {
     if (!isOnline) return;
 
-    final String recieved = isRecieved();
-    if (recieved == null) return;
+    final String[] received = isRecieved();
+    final CTPortCommMsgType type = FileUtil.parseCTPortCommMsgType(received);
+    if (type == CTPortCommMsgType.UNREADABLE) return;
+    // more code later here
   }
 
-  public String isRecieved() {
+  public String[] isRecieved() {
     try {
-      return FileUtil.readFile(CTFileComm);
+      return FileUtil.readFile(CTFileComm).split("\n");
     } catch (Exception e) {
       e.printStackTrace();
     }
 
-    return null;
+    return new String[] { "" };
   }
 }
