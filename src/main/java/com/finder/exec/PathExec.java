@@ -17,10 +17,9 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 public class PathExec {
 
   boolean isOnline = false;
-  final MathUtil MATH = new MathUtil();
   List<BlockPos> blocksOnPath = new ArrayList<>();
   Vec3 curVecGoing = null;
-  HashSet<KeyBinding> prevPresses = new HashSet<>();
+  int jumpPresses = 0;
 
   public void run(List<BlockPos> blocksOnPath, boolean state) {
     this.blocksOnPath = blocksOnPath;
@@ -42,7 +41,7 @@ public class PathExec {
   @SubscribeEvent
   public void onRender(RenderWorldLastEvent event) {
     if (!isOnline || curVecGoing == null) return;
-    double dist = MATH.distanceFromToXZ(
+    double dist = MathUtil.distanceFromToXZ(
       ForgeFinder.MC.thePlayer.getPositionVector(),
       curVecGoing
     );
@@ -84,7 +83,8 @@ public class PathExec {
       ForgeFinder.MC.gameSettings.keyBindJump.getKeyCode(),
       ForgeFinder.MC.thePlayer.getPositionVector().yCoord <
       curVecGoing.yCoord &&
-      dist < 1.5
+      dist < 1.5 &&
+      ForgeFinder.MC.thePlayer.onGround
     );
   }
 }

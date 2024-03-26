@@ -21,8 +21,6 @@ import com.finder.util.MathUtil;
 
 public class CostConst {
 
-  private static final MathUtil MATH = new MathUtil();
-
   /**
    * These costs are measured roughly in ticks btw
    */
@@ -110,7 +108,7 @@ public class CostConst {
     int z1
   ) {
     double timeInSeconds =
-      MATH.distanceFromToXZ(x, z, x1, z1) / blocksPerSecond;
+      MathUtil.distanceFromToXZ(x, z, x1, z1) / blocksPerSecond;
     return timeInSeconds * 1000;
   }
 

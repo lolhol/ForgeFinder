@@ -86,4 +86,18 @@ public class MathUtil {
   ) {
     return z * (width * height) + y * width + x;
   }
+
+  public static int[] getCoordinatesFromPositionIndex(
+    int positionIndex,
+    int height,
+    int width
+  ) {
+    int[] coordinates = new int[3];
+    coordinates[2] = positionIndex / (width * height);
+    int remainingPosition = positionIndex % (width * height);
+    coordinates[1] = remainingPosition / width;
+    coordinates[0] = remainingPosition % width;
+
+    return coordinates;
+  }
 }

@@ -6,7 +6,11 @@ import com.finder.calculator.util.Node;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.block.Block;
-import net.minecraft.util.*;
+import net.minecraft.init.Blocks;
+import net.minecraft.util.BlockPos;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.MathHelper;
+import net.minecraft.util.Vec3;
 
 public class BlockUtil {
 
@@ -248,5 +252,16 @@ public class BlockUtil {
 
   public static String blockToString(Block block) {
     return block.getRegistryName();
+  }
+
+  public static boolean isBlockAir(Block blockType) {
+    return (
+      blockType == Blocks.air ||
+      blockType == Blocks.red_flower ||
+      blockType == Blocks.tallgrass ||
+      blockType == Blocks.yellow_flower ||
+      blockType == Blocks.double_plant ||
+      blockType == Blocks.flowing_water
+    );
   }
 }

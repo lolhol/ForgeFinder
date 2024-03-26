@@ -21,6 +21,4 @@ public class ForgeFinder {
     MinecraftForge.EVENT_BUS.register(CACHE_MANAGER);
     CACHE_MANAGER.isCaching = true;
   }
-  // PS: ik theres the Command base from the essentials but i dont have wifi atm so :/
-
 }

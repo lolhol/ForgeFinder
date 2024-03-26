@@ -98,6 +98,9 @@ public class Test1 {
                 "No Path Found! Nodes considered: " + nodesConsidered
               );
             }
+
+            @Override
+            public void finderError() {}
           }
         ),
         true

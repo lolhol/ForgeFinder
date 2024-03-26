@@ -6,7 +6,6 @@ import com.finder.calculator.util.BetterBlockPos;
 import com.finder.calculator.util.Node;
 import com.finder.calculator.util.NodeUtil;
 import com.finder.calculator.util.set.SetManager;
-import com.finder.debug.util.RenderUtil;
 import com.finder.util.ChatUtil;
 import java.util.PriorityQueue;
 import net.minecraft.util.BlockPos;
@@ -60,72 +59,76 @@ public class AStarPathfinder {
   }
 
   public Node runStar(Config config) {
-    long timeInit = System.currentTimeMillis();
+    try {
+      long timeInit = System.currentTimeMillis();
+      BlockPos endBP = new BlockPos(config.end.x, config.end.y, config.end.z);
 
-    BlockPos startBP = new BlockPos(
-      config.start.x,
-      config.start.y,
-      config.start.z
-    );
-    BlockPos endBP = new BlockPos(config.end.x, config.end.y, config.end.z);
+      //final NodeListManager manager = new NodeListManager(startBP);
+      //final HashSet<BetterBlockPos> closedSet = new HashSet<>();
+      final SetManager setManager = new SetManager(config.start.getBlockPos());
 
-    //final NodeListManager manager = new NodeListManager(startBP);
-    //final HashSet<BetterBlockPos> closedSet = new HashSet<>();
-    final SetManager setManager = new SetManager(config.start.getBlockPos());
+      PriorityQueue<Node> openSet = new PriorityQueue<>();
 
-    PriorityQueue<Node> openSet = new PriorityQueue<>();
+      setManager.updateOpenState(
+        new BetterBlockPos(config.start.getPosInt()),
+        true
+      );
+      openSet.add(config.start);
 
-    setManager.updateOpenState(
-      new BetterBlockPos(config.start.getPosInt()),
-      true
-    );
-    openSet.add(config.start);
+      int i = 0;
+      isDone = false;
+      nodesConsidered = 0;
+      while (!openSet.isEmpty() && i < config.maxIter) {
+        Node best = openSet.poll();
 
-    int i = 0;
-    isDone = false;
-    nodesConsidered = 0;
-    while (!openSet.isEmpty() && i < config.maxIter) {
-      Node best = openSet.poll();
-
-      if (config.end.equals(best)) {
-        timeTaken = System.currentTimeMillis() - timeInit;
-        isDone = true;
-        return best;
-      }
-
-      for (BetterBlockPos n : best.genNodePosAround()) {
-        if (setManager.isClosedNode(n) || setManager.isOpenNode(n)) continue;
-
-        boolean[] interactions = NodeUtil.isAbleToInteract(
-          new int[] { n.x, n.y, n.z },
-          best
-        );
-        if (!interactions[0] && !interactions[1] && !interactions[2]) {
-          continue;
+        if (config.end.equals(best)) {
+          timeTaken = System.currentTimeMillis() - timeInit;
+          isDone = true;
+          return best;
         }
 
-        Node node = new Node(0, best, n);
-        node.generateCostsForNode(endBP, interactions, config.blocksPerSecond);
+        for (BetterBlockPos n : best.genNodePosAround()) {
+          if (setManager.isClosedNode(n) || setManager.isOpenNode(n)) continue;
 
-        if (config.costs != null) {
-          Triple<Double, Double, Double> costs = config.costs.addCost(node);
-          node.totalCost +=
-            costs.getRight() + costs.getLeft() + costs.getMiddle();
+          boolean[] interactions = NodeUtil.isAbleToInteract(
+            new int[] { n.x, n.y, n.z },
+            best
+          );
+          if (!interactions[0] && !interactions[1] && !interactions[2]) {
+            continue;
+          }
+
+          Node node = new Node(0, best, n);
+          node.generateCostsForNode(
+            endBP,
+            interactions,
+            config.blocksPerSecond
+          );
+
+          if (config.costs != null) {
+            Triple<Double, Double, Double> costs = config.costs.addCost(node);
+            node.totalCost +=
+              costs.getRight() + costs.getLeft() + costs.getMiddle();
+          }
+
+          openSet.add(node);
+          setManager.updateOpenState(n, true);
+          //RenderUtil.addBlockToRenderSync(node.getBlockPos());
         }
 
-        openSet.add(node);
-        setManager.updateOpenState(n, true);
+        setManager.add(best);
+        setManager.updateOpenState(best, false);
+
+        i++;
+        nodesConsidered++;
       }
 
-      setManager.add(best);
-      setManager.updateOpenState(best, false);
-
-      i++;
-      nodesConsidered++;
+      timeTaken = System.currentTimeMillis() - timeInit;
+      isDone = true;
+    } catch (Exception e) {
+      isDone = true;
     }
 
-    timeTaken = System.currentTimeMillis() - timeInit;
-    isDone = true;
     return null;
   }
 }

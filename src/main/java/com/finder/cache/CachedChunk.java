@@ -2,18 +2,15 @@ package com.finder.cache;
 
 import com.finder.cache.util.CacheState;
 import com.finder.calculator.util.BetterBlockPos;
-import com.finder.debug.util.RenderUtil;
-import com.finder.util.ChatUtil;
 import com.finder.util.MathUtil;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import java.util.*;
-import net.minecraft.block.Block;
-import net.minecraft.init.Blocks;
-import net.minecraft.util.BlockPos;
+import java.util.BitSet;
+import java.util.List;
+import java.util.Map;
 
 public class CachedChunk {
 
-  private final BitSet[] blockData;
+  private final BitSet blockDataFlat;
   private final Int2ObjectOpenHashMap<String> special;
   private final int[] position;
 
@@ -22,7 +19,30 @@ public class CachedChunk {
     int[] position,
     Map<String, List<BetterBlockPos>> keepTrackOfBlockLocations
   ) {
-    this.blockData = blockData;
+    this.blockDataFlat = new BitSet(256 * 16 * 16);
+
+    for (int i = 0; i < blockData.length; i++) {
+      BitSet bits = blockData[i];
+      if (bits == null) {
+        continue;
+      }
+
+      int realChunkPosY = i << 4;
+      for (int j = 0; j < bits.length(); j++) {
+        int[] posC = MathUtil.getCoordinatesFromPositionIndex(j, 16, 16);
+        blockDataFlat.set(
+          MathUtil.getPositionIndex3DList(
+            posC[0],
+            posC[1] + realChunkPosY,
+            posC[2],
+            256,
+            16
+          ),
+          bits.get(j)
+        );
+      }
+    }
+
     this.position = position;
 
     if (!keepTrackOfBlockLocations.isEmpty()) {
@@ -41,19 +61,14 @@ public class CachedChunk {
   }
 
   public CacheState isBlockSolidInChunk(int xChunk, int yChunk, int zChunk) {
-    int listPos = yChunk >> 4;
-    if (blockData[listPos] == null) {
-      return CacheState.NOEXISTANCE;
-    }
-
     int chunkX = xChunk - this.position[0];
     int chunkZ = zChunk - this.position[1];
 
     int position = MathUtil.getPositionIndex3DList(
       chunkX,
-      (yChunk) - (listPos << 4),
+      yChunk,
       chunkZ,
-      16,
+      256,
       16
     );
 
@@ -68,24 +83,36 @@ public class CachedChunk {
       }
     }
 
-    return blockData[listPos].get(position)
+    return blockDataFlat.get(position)
       ? CacheState.EXISTS_YES
       : CacheState.EXISTS_NO;
   }
 
   public boolean getBlockStateChunk(BetterBlockPos blockPosition) {
     int positionChunkX = position[0] - blockPosition.x;
-    int positionChunkY = blockPosition.y >> 4;
     int positionChunkZ = position[1] - blockPosition.z;
 
-    return blockData[positionChunkY].get(
-        MathUtil.getPositionIndex3DList(
-          positionChunkX,
-          Math.abs(positionChunkY << 4 - blockPosition.y),
-          positionChunkZ,
-          16,
-          16
-        )
-      );
+    return blockDataFlat.get(
+      MathUtil.getPositionIndex3DList(
+        positionChunkX,
+        blockPosition.y,
+        positionChunkZ,
+        256,
+        16
+      )
+    );
+  }
+
+  public void setBlockState(BetterBlockPos blockPosChunk, boolean state) {
+    blockDataFlat.set(
+      MathUtil.getPositionIndex3DList(
+        blockPosChunk.x,
+        blockPosChunk.y,
+        blockPosChunk.z,
+        256,
+        16
+      ),
+      state
+    );
   }
 }

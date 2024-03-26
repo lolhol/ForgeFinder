@@ -60,7 +60,7 @@ public class Node implements Comparable<Node> {
       return comp1 == 0 ? Double.compare(gCost, o.gCost) : comp1;
     }*/
 
-    return totalCost != o.totalCost ? totalCost < o.totalCost ? -1 : 1 : 0;
+    return totalCost != o.totalCost ? (totalCost < o.totalCost ? -1 : 1) : 0;
   }
 
   public List<BetterBlockPos> genNodePosAround() {
@@ -145,14 +145,11 @@ public class Node implements Comparable<Node> {
       }
     });
 
-    gCost += atomInt.get() * 20;
-    gCost += underInt.get() * 10;
+    gCost += atomInt.get();
+    gCost += underInt.get();
 
-    /*if (parent != null) {
-      gCost += parent.gCost;
-    }*/
+    ChatUtil.sendChat(hCost + " | " + gCost);
 
-    //ChatUtil.sendChat(hCost + " | " + gCost + " || " + totalCost);
     totalCost = hCost + gCost;
   }
 

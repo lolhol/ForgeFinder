@@ -2,6 +2,9 @@ package com.finder.calculator.util;
 
 import net.minecraft.util.BlockPos;
 
+/**
+ * @apiNote this is a BlockPos basicvaly without all of the other shit that the normal BP gives
+ */
 public class BetterBlockPos {
 
   public final int x;
@@ -12,6 +15,18 @@ public class BetterBlockPos {
     this.x = position[0];
     this.y = position[1];
     this.z = position[2];
+  }
+
+  public BetterBlockPos(int x, int y, int z) {
+    this.x = x;
+    this.y = y;
+    this.z = z;
+  }
+
+  public BetterBlockPos(BlockPos blockPos) {
+    this.x = blockPos.getX();
+    this.y = blockPos.getY();
+    this.z = blockPos.getZ();
   }
 
   @Override

@@ -1,5 +1,8 @@
 package com.finder.cache;
 
+import static com.finder.util.BlockUtil.isBlockAir;
+
+import com.finder.ForgeFinder;
 import com.finder.calculator.util.BetterBlockPos;
 import com.finder.util.ChatUtil;
 import com.finder.util.ChunkPosInt;
@@ -27,6 +30,8 @@ public class ChunkCachefier extends Thread {
     new ArrayList<>()
   );
 
+  final HashSet<BetterBlockPos> blocksToCacheLater = new HashSet<>();
+
   public ChunkCachefier(
     final Map<ChunkPosInt, CachedChunk> cachedChunksMap,
     Chunk chunkToCache
@@ -39,7 +44,54 @@ public class ChunkCachefier extends Thread {
   public void run() {
     while (true) {
       if (chunksWorkLoad.isEmpty()) {
+        if (!blocksToCacheLater.isEmpty()) {
+          for (BetterBlockPos block : blocksToCacheLater) {
+            int chunkX = block.x >> 4;
+            int chunkZ = block.z >> 4;
+
+            if (cachedChunksMap.containsKey(new ChunkPosInt(chunkX, chunkZ))) {
+              cachedChunksMap
+                .get(new ChunkPosInt(chunkX, chunkZ))
+                .setBlockState(
+                  new BetterBlockPos(
+                    Math.abs(block.x - chunkX),
+                    block.y,
+                    Math.abs(block.z - chunkZ)
+                  ),
+                  isBlockAir(
+                    ForgeFinder.MC.theWorld
+                      .getBlockState(new BlockPos(block.x, block.y, block.z))
+                      .getBlock()
+                  )
+                );
+
+              ChatUtil.sendChat(
+                "Cached block at " +
+                block.x +
+                ", " +
+                block.y +
+                ", " +
+                block.z +
+                " in chunk " +
+                chunkX +
+                ", " +
+                chunkZ
+              );
+            }
+          }
+
+          blocksToCacheLater.clear();
+        } else {
+          try {
+            Thread.sleep(500);
+          } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+          }
+        }
+
         continue;
+      } else {
+        ChatUtil.sendChat("Still working on chunks!");
       }
 
       Chunk chunk;
@@ -106,14 +158,6 @@ public class ChunkCachefier extends Thread {
         } else {
           blockData[i] = set;
         }
-
-        ChatUtil.sendChat(
-          "Bits cached so far: " +
-          bitsCached +
-          ". " +
-          chunksWorkLoad.size() +
-          " chunks left."
-        );
       }
 
       synchronized (cachedChunksMap) {
@@ -135,18 +179,11 @@ public class ChunkCachefier extends Thread {
     }
   }
 
-  private boolean isBlockSolid(Block blockType) {
-    return (blockType != Blocks.water && blockType != Blocks.lava);
+  public void addBlockToCacheLater(BetterBlockPos block) {
+    this.blocksToCacheLater.add(block);
   }
 
-  private boolean isBlockAir(Block blockType) {
-    return (
-      blockType == Blocks.air ||
-      blockType == Blocks.red_flower ||
-      blockType == Blocks.tallgrass ||
-      blockType == Blocks.yellow_flower ||
-      blockType == Blocks.double_plant ||
-      blockType == Blocks.flowing_water
-    );
+  private boolean isBlockSolid(Block blockType) {
+    return (blockType != Blocks.water && blockType != Blocks.lava);
   }
 }
