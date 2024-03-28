@@ -94,6 +94,7 @@ public class AStarPathfinder {
             new int[] { n.x, n.y, n.z },
             best
           );
+
           if (!interactions[0] && !interactions[1] && !interactions[2]) {
             continue;
           }
@@ -102,8 +103,11 @@ public class AStarPathfinder {
           node.generateCostsForNode(
             endBP,
             interactions,
-            config.blocksPerSecond
+            config.blocksPerSecond,
+            best.gCost
           );
+
+          //node.totalCost += best.totalCost;
 
           if (config.costs != null) {
             Triple<Double, Double, Double> costs = config.costs.addCost(node);
@@ -114,6 +118,7 @@ public class AStarPathfinder {
           openSet.add(node);
           setManager.updateOpenState(n, true);
           //RenderUtil.addBlockToRenderSync(node.getBlockPos());
+          //Thread.sleep(50);
         }
 
         setManager.add(best);

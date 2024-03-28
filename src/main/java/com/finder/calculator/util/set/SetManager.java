@@ -7,9 +7,9 @@ import com.finder.util.MathUtil;
 import java.util.HashMap;
 import net.minecraft.util.BlockPos;
 
+// FIXME: chunk is 16 BLOCK WIDE!!! NOT 8!
 public class SetManager {
 
-  private final int[] START_CHUNK_POS;
   private final HashMap<ChunkPosByte, SetChunk> chunks = new HashMap<>();
 
   // above the max of 256 chunks. IK IK this not gon be efficient if you have > 256 chunks pathing but i mean... we can jst copy
@@ -20,13 +20,7 @@ public class SetManager {
    */
   private HashMap<int[], SetChunk> chunksAb256 = new HashMap<>();
 
-  public SetManager(BlockPos startPosition) {
-    START_CHUNK_POS =
-      new int[] {
-        MathUtil.getPositionChunk(startPosition.getX()),
-        MathUtil.getPositionChunk(startPosition.getZ()),
-      };
-  }
+  public SetManager(BlockPos startPosition) {}
 
   public void add(Node node) {
     ChunkPosByte nodePosChunk = getPositionChunk(node);
@@ -52,8 +46,8 @@ public class SetManager {
   public ChunkPosByte getPositionChunk(Node node) {
     return new ChunkPosByte(
       new byte[] {
-        (byte) (MathUtil.getPositionChunk(node.x) - START_CHUNK_POS[0]),
-        (byte) (MathUtil.getPositionChunk(node.z) - START_CHUNK_POS[1]),
+        (byte) (MathUtil.getPositionChunk(node.x)),
+        (byte) (MathUtil.getPositionChunk(node.z)),
       }
     );
   }
@@ -61,8 +55,8 @@ public class SetManager {
   public ChunkPosByte getPositionChunk(BetterBlockPos node) {
     return new ChunkPosByte(
       new byte[] {
-        (byte) (MathUtil.getPositionChunk(node.x) - START_CHUNK_POS[0]),
-        (byte) (MathUtil.getPositionChunk(node.z) - START_CHUNK_POS[1]),
+        (byte) (MathUtil.getPositionChunk(node.x)),
+        (byte) (MathUtil.getPositionChunk(node.z)),
       }
     );
   }

@@ -29,7 +29,11 @@ public class CacheManager {
 
   @SubscribeEvent
   public void onBlockChangeEvent(BlockChangeEvent event) {
-    if (chunkCachefierThread != null) {
+    if (
+      chunkCachefierThread != null &&
+      isBlockCached(event.pos) &&
+      event.old != event.update
+    ) {
       chunkCachefierThread.addBlockToCacheLater(new BetterBlockPos(event.pos));
     }
   }
@@ -60,18 +64,16 @@ public class CacheManager {
   }
 
   private void addChunkToCache(Chunk chunk, ChunkPosInt chunkPosInt) {
-    if (!cachedChunksPositions.contains(chunkPosInt)) {
-      if (chunkCachefierThread == null || !chunkCachefierThread.isAlive()) {
-        chunkCachefierThread = new ChunkCachefier(cachedChunks, chunk);
-        chunkCachefierThread.start();
-      } else {
-        chunkCachefierThread.addChunkToCacheLater(chunk);
-      }
-
-      cachedChunksPositions.add(chunkPosInt);
-
-      totalChunks++;
+    if (chunkCachefierThread == null) {
+      chunkCachefierThread = new ChunkCachefier(cachedChunks, chunk);
+      chunkCachefierThread.start();
+    } else {
+      chunkCachefierThread.addChunkToCacheLater(chunk);
     }
+
+    cachedChunksPositions.add(chunkPosInt);
+
+    totalChunks++;
   }
 
   public CachedChunk getCachedChunk(int x, int z) {

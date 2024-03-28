@@ -106,9 +106,9 @@ public class CachedChunk {
   public void setBlockState(BetterBlockPos blockPosChunk, boolean state) {
     blockDataFlat.set(
       MathUtil.getPositionIndex3DList(
-        blockPosChunk.x,
+        blockPosChunk.x - this.position[0],
         blockPosChunk.y,
-        blockPosChunk.z,
+        blockPosChunk.z - this.position[1],
         256,
         16
       ),

@@ -4,7 +4,6 @@ import static com.finder.util.BlockUtil.isBlockAir;
 
 import com.finder.ForgeFinder;
 import com.finder.calculator.util.BetterBlockPos;
-import com.finder.util.ChatUtil;
 import com.finder.util.ChunkPosInt;
 import com.finder.util.MathUtil;
 import java.util.*;
@@ -30,7 +29,13 @@ public class ChunkCachefier extends Thread {
     new ArrayList<>()
   );
 
-  final HashSet<BetterBlockPos> blocksToCacheLater = new HashSet<>();
+  final Set<ChunkPosInt> cachingChunks = Collections.synchronizedSet(
+    new HashSet<>()
+  );
+
+  final Set<BetterBlockPos> blocksToCacheLater = Collections.synchronizedSet(
+    new HashSet<>()
+  );
 
   public ChunkCachefier(
     final Map<ChunkPosInt, CachedChunk> cachedChunksMap,
@@ -44,54 +49,63 @@ public class ChunkCachefier extends Thread {
   public void run() {
     while (true) {
       if (chunksWorkLoad.isEmpty()) {
-        if (!blocksToCacheLater.isEmpty()) {
-          for (BetterBlockPos block : blocksToCacheLater) {
-            int chunkX = block.x >> 4;
-            int chunkZ = block.z >> 4;
+        synchronized (blocksToCacheLater) {
+          if (!blocksToCacheLater.isEmpty()) {
+            for (BetterBlockPos block : blocksToCacheLater) {
+              int chunkX = block.x >> 4;
+              int chunkZ = block.z >> 4;
 
-            if (cachedChunksMap.containsKey(new ChunkPosInt(chunkX, chunkZ))) {
-              cachedChunksMap
-                .get(new ChunkPosInt(chunkX, chunkZ))
-                .setBlockState(
-                  new BetterBlockPos(
-                    Math.abs(block.x - chunkX),
-                    block.y,
-                    Math.abs(block.z - chunkZ)
-                  ),
-                  isBlockAir(
+              if (
+                cachedChunksMap.containsKey(new ChunkPosInt(chunkX, chunkZ))
+              ) {
+                cachedChunksMap
+                  .get(new ChunkPosInt(chunkX, chunkZ))
+                  .setBlockState(
+                    new BetterBlockPos(block.x, block.y, block.z),
+                    !isBlockAir(
+                      ForgeFinder.MC.theWorld
+                        .getBlockState(new BlockPos(block.x, block.y, block.z))
+                        .getBlock()
+                    )
+                  );
+                /*ChatUtil.sendChat(
+                  "Cached block at " +
+                  block.x +
+                  ", " +
+                  block.y +
+                  ", " +
+                  block.z +
+                  " in chunk " +
+                  chunkX +
+                  ", " +
+                  chunkZ +
+                  " set value to " +
+                  !isBlockAir(
                     ForgeFinder.MC.theWorld
                       .getBlockState(new BlockPos(block.x, block.y, block.z))
                       .getBlock()
                   )
-                );
-
-              ChatUtil.sendChat(
-                "Cached block at " +
-                block.x +
-                ", " +
-                block.y +
-                ", " +
-                block.z +
-                " in chunk " +
-                chunkX +
-                ", " +
-                chunkZ
-              );
+                );*/
+                /*ChatUtil.sendChat(
+                "Actual " +
+                cachedChunksMap
+                  .get(new ChunkPosInt(chunkX, chunkZ))
+                  .isBlockSolidInChunk(block.x, block.y, block.z)
+              );*/
+              }
             }
-          }
 
-          blocksToCacheLater.clear();
-        } else {
-          try {
-            Thread.sleep(500);
-          } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            blocksToCacheLater.clear();
+          } else {
+            try {
+              Thread.sleep(500);
+            } catch (InterruptedException e) {
+              throw new RuntimeException(e);
+            }
           }
         }
 
         continue;
-      } else {
-        ChatUtil.sendChat("Still working on chunks!");
       }
 
       Chunk chunk;
@@ -160,6 +174,10 @@ public class ChunkCachefier extends Thread {
         }
       }
 
+      synchronized (cachingChunks) {
+        cachingChunks.remove(new ChunkPosInt(chunk.xPosition, chunk.zPosition));
+      }
+
       synchronized (cachedChunksMap) {
         cachedChunksMap.put(
           chunkPosInt,
@@ -177,10 +195,16 @@ public class ChunkCachefier extends Thread {
     synchronized (chunksWorkLoad) {
       chunksWorkLoad.add(chunk);
     }
+
+    synchronized (cachingChunks) {
+      cachingChunks.add(new ChunkPosInt(chunk.xPosition, chunk.zPosition));
+    }
   }
 
   public void addBlockToCacheLater(BetterBlockPos block) {
-    this.blocksToCacheLater.add(block);
+    synchronized (chunksWorkLoad) {
+      this.blocksToCacheLater.add(block);
+    }
   }
 
   private boolean isBlockSolid(Block blockType) {

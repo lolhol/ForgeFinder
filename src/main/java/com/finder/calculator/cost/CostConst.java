@@ -73,6 +73,7 @@ public class CostConst {
     for (int i = 0; i < 4097; i++) {
       costs[i] = distanceToTicks(i);
     }
+
     return costs;
   }
 

@@ -39,7 +39,7 @@ public class NodeUtil {
       );
 
     if (
-      yDif <= 0.001 &&
+      yDif <= 0.1 &&
       !BlockUtil.isBlockSolid(blockAbove1) &&
       BlockUtil.isBlockSolid(blockBelow1) &&
       ((BlockUtil.isBlockWalkable(block) || isWalkableSlab))
@@ -88,15 +88,13 @@ public class NodeUtil {
     double yDiff = block.getY() - parentBlock.getY();
 
     BlockPos blockBelow1 = block.add(0, -1, 0);
-    BlockPos blockAbove1 = block.add(0, 1, 0);
+    BlockPos blockAbove1 = block.add(0, Math.abs(yDiff) + 1, 0);
 
     if (
-      (
-        yDiff < 0 &&
-        yDiff > -4 &&
-        BlockUtil.isBlockSolid(blockBelow1) &&
-        !BlockUtil.isBlockSolid(blockAbove1)
-      ) &&
+      yDiff < 0 &&
+      yDiff > -4 &&
+      BlockUtil.isBlockSolid(blockBelow1) &&
+      !BlockUtil.isBlockSolid(blockAbove1) &&
       BlockUtil.isBlockWalkable(block)
     ) {
       if (MathUtil.distanceFromToXZ(block, parentBlock) <= 1) {

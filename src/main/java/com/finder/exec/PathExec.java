@@ -5,6 +5,7 @@ import com.finder.calculator.util.Node;
 import com.finder.util.ChatUtil;
 import com.finder.util.KeyBindHandler;
 import com.finder.util.MathUtil;
+import com.finder.util.RotationUtils;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -67,6 +68,17 @@ public class PathExec {
 
       return;
     }
+
+    RotationUtils.smoothLook(
+      RotationUtils.getRotation(
+        new Vec3(
+          curVecGoing.xCoord,
+          ForgeFinder.MC.thePlayer.posY + ForgeFinder.MC.thePlayer.eyeHeight,
+          curVecGoing.zCoord
+        )
+      ),
+      200
+    );
 
     HashSet<KeyBinding> neededKeyPresses = KeyBindHandler.getNeededKeyPresses(
       ForgeFinder.MC.thePlayer.getPositionVector(),

@@ -3,6 +3,7 @@ package com.finder;
 import com.finder.cache.CacheManager;
 import com.finder.debug.Test1;
 import com.finder.debug.util.RenderUtil;
+import com.finder.util.RotationUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
@@ -19,6 +20,7 @@ public class ForgeFinder {
     MinecraftForge.EVENT_BUS.register(new Test1());
     MinecraftForge.EVENT_BUS.register(new RenderUtil());
     MinecraftForge.EVENT_BUS.register(CACHE_MANAGER);
+    MinecraftForge.EVENT_BUS.register(new RotationUtils());
     CACHE_MANAGER.isCaching = true;
   }
 }

@@ -2,7 +2,6 @@ package com.finder.calculator.util;
 
 import com.finder.calculator.cost.CostConst;
 import com.finder.util.BlockUtil;
-import com.finder.util.ChatUtil;
 import com.finder.util.MathUtil;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -22,6 +21,7 @@ public class Node implements Comparable<Node> {
   // gCost and hCost are in milliseconds
   public double totalCost;
   public boolean isSlab = false;
+  public double gCost = 0;
 
   public Node(double totalCost, Node parent, BlockPos bp) {
     this.totalCost = totalCost;
@@ -60,7 +60,7 @@ public class Node implements Comparable<Node> {
       return comp1 == 0 ? Double.compare(gCost, o.gCost) : comp1;
     }*/
 
-    return totalCost != o.totalCost ? (totalCost < o.totalCost ? -1 : 1) : 0;
+    return Double.compare(totalCost, o.totalCost);
   }
 
   public List<BetterBlockPos> genNodePosAround() {
@@ -97,7 +97,8 @@ public class Node implements Comparable<Node> {
   public void generateCostsForNode(
     BlockPos endBlock,
     boolean[] interactions,
-    double blocksPerSecond
+    double blocksPerSecond,
+    double prevNodeGCost
   ) {
     double distanceEnd = MathUtil.distanceFromTo(x, y, z, endBlock);
     double gCost = 0;
@@ -120,15 +121,14 @@ public class Node implements Comparable<Node> {
           parent.z
         );
     } else if (interactions[1]) {
-      gCost += (CostConst.FALL_1_25_BLOCKS_COST) * yDiff * 20;
+      gCost += Math.abs((CostConst.FALL_1_25_BLOCKS_COST) * yDiff * 50);
     } else if (interactions[2]) {
-      gCost += CostConst.JUMP_ONE_BLOCK_COST * yDiff * 20;
-      //ChatUtil.sendChat(String.valueOf(gCost));
+      gCost += Math.abs(CostConst.FALL_N_BLOCKS_COST[(int) yDiff]) * 50;
     } else {
       gCost = CostConst.COST_INF;
     }
 
-    double radius = Math.sqrt(blocksPerSecond);
+    double radius = 1;
 
     Iterable<BlockPos> blocksAround = BlockPos.getAllInBox(
       new BlockPos(x + radius, y + radius, z + radius),
@@ -145,10 +145,12 @@ public class Node implements Comparable<Node> {
       }
     });
 
-    gCost += atomInt.get();
-    gCost += underInt.get();
+    //gCost += atomInt.get();
+    //gCost += underInt.get();
+    gCost += parent.gCost;
+    this.gCost = gCost;
 
-    ChatUtil.sendChat(hCost + " | " + gCost);
+    //ChatUtil.sendChat(hCost + " | " + gCost);
 
     totalCost = hCost + gCost;
   }
