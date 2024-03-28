@@ -7,6 +7,7 @@ import com.finder.calculator.util.Node;
 import com.finder.calculator.util.NodeUtil;
 import com.finder.calculator.util.set.SetManager;
 import com.finder.util.ChatUtil;
+import java.util.List;
 import java.util.PriorityQueue;
 import net.minecraft.util.BlockPos;
 import org.apache.commons.lang3.tuple.Triple;
@@ -90,21 +91,40 @@ public class AStarPathfinder {
         for (BetterBlockPos n : best.genNodePosAround()) {
           if (setManager.isClosedNode(n) || setManager.isOpenNode(n)) continue;
 
-          boolean[] interactions = NodeUtil.isAbleToInteract(
-            new int[] { n.x, n.y, n.z },
-            best
-          );
+          List<List<BlockPos>> interactions =
+            NodeUtil.getBlocksWithInteractions(
+              new int[] { n.x, n.y, n.z },
+              best
+            );
 
-          if (!interactions[0] && !interactions[1] && !interactions[2]) {
-            continue;
+          if (
+            interactions.get(0) == null &&
+            interactions.get(1) == null &&
+            interactions.get(2) == null
+          ) continue;
+
+          if (!config.canMineBlocks) {
+            if (
+              (!interactions.get(0).isEmpty()) &&
+              (!interactions.get(1).isEmpty()) &&
+              (!interactions.get(2).isEmpty())
+            ) {
+              continue;
+            }
+          } else {
+            if (
+              interactions.get(0).isEmpty() &&
+              interactions.get(1).isEmpty() &&
+              interactions.get(2).isEmpty()
+            ) continue;
           }
 
           Node node = new Node(0, best, n);
+
           node.generateCostsForNode(
             endBP,
-            interactions,
             config.blocksPerSecond,
-            best.gCost
+            interactions
           );
 
           //node.totalCost += best.totalCost;

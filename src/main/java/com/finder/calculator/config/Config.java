@@ -19,13 +19,15 @@ public class Config {
   public Callback callback;
   public CustomCosts costs = null;
   public double walkerErrorCoef = 0;
+  public boolean canMineBlocks;
 
   public Config(
     Vec3 startBlock,
     Vec3 endBlock,
     int maxIter,
     int blocksPerSecond,
-    Callback callback
+    Callback callback,
+    boolean canMineBlocks
   ) {
     this.callback = callback;
 
@@ -39,6 +41,7 @@ public class Config {
     this.maxIter = maxIter;
     this.blocksPerSecond = blocksPerSecond;
     this.walkerErrorCoef = blocksPerSecond * blocksPerSecond;
+    this.canMineBlocks = canMineBlocks;
   }
 
   public Config(
@@ -47,7 +50,8 @@ public class Config {
     int maxIter,
     int blocksPerSecond,
     Callback callback,
-    CustomCosts costs
+    CustomCosts costs,
+    boolean canMineBlocks
   ) {
     this.callback = callback;
     double dist = TimeUtil.getTimeReqMS(
@@ -60,6 +64,7 @@ public class Config {
     this.blocksPerSecond = blocksPerSecond;
     this.costs = costs;
     this.walkerErrorCoef = blocksPerSecond * blocksPerSecond;
+    this.canMineBlocks = canMineBlocks;
   }
 
   // by default will be set to a slow val
@@ -67,7 +72,8 @@ public class Config {
     Vec3 startBlock,
     Vec3 endBlock,
     int maxIter,
-    Callback callback
+    Callback callback,
+    boolean canMineBlocks
   ) {
     this.callback = callback;
     double dist = TimeUtil.getTimeReqMS(
@@ -79,5 +85,6 @@ public class Config {
     this.maxIter = maxIter;
     this.blocksPerSecond = CostConst.WALK_ONE_BLOCK_COST * 20;
     this.walkerErrorCoef = blocksPerSecond * blocksPerSecond;
+    this.canMineBlocks = canMineBlocks;
   }
 }

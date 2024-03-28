@@ -21,6 +21,7 @@ public class Node implements Comparable<Node> {
   // gCost and hCost are in milliseconds
   public double totalCost;
   public boolean isSlab = false;
+  public List<BlockPos> blocksNeededToBeMined;
   public double gCost = 0;
 
   public Node(double totalCost, Node parent, BlockPos bp) {
@@ -92,6 +93,71 @@ public class Node implements Comparable<Node> {
     Collections.reverse(retList);
 
     return retList;
+  }
+
+  public void generateCostsForNode(
+    BlockPos endBlock,
+    double blocksPerSecond,
+    List<List<BlockPos>> blocksNeededToBeBroken
+  ) {
+    double distanceEnd = MathUtil.distanceFromTo(x, y, z, endBlock);
+    double gCost = 0;
+
+    if (blocksPerSecond != 0) {
+      distanceEnd = distanceEnd / blocksPerSecond * 1000;
+    }
+
+    double hCost = distanceEnd;
+
+    double yDiff = Math.abs(y - parent.y);
+
+    int posChosen = 0;
+    if (blocksNeededToBeBroken.get(0) != null) {
+      gCost +=
+        CostConst.calculateTimeToWalkOneBlock(
+          blocksPerSecond,
+          x,
+          z,
+          parent.x,
+          parent.z
+        );
+    } else if (blocksNeededToBeBroken.get(1) != null) {
+      gCost += CostConst.JUMP_ONE_BLOCK_COST * Math.abs(yDiff) * 50;
+      posChosen = 1;
+    } else if (blocksNeededToBeBroken.get(2) != null) {
+      gCost += Math.abs((CostConst.FALL_1_25_BLOCKS_COST) * yDiff * 50);
+      posChosen = 2;
+    }
+
+    for (BlockPos block : blocksNeededToBeBroken.get(posChosen)) {
+      // TODO: fix @this
+      gCost += 1000;
+    }
+
+    /*double radius = 1;
+
+    Iterable<BlockPos> blocksAround = BlockPos.getAllInBox(
+      new BlockPos(x + radius, y + radius, z + radius),
+      new BlockPos(x - radius, y - radius, z - radius)
+    );
+
+    AtomicInteger atomInt = new AtomicInteger();
+    AtomicInteger underInt = new AtomicInteger();
+    blocksAround.forEach(a -> {
+      if (BlockUtil.isBlockSolid(a) && a.getY() >= y) {
+        atomInt.incrementAndGet();
+      } else if (a.getY() < y && !BlockUtil.isBlockSolid(a)) {
+        underInt.incrementAndGet();
+      }
+    });*/
+
+    //gCost += atomInt.get();
+    //gCost += underInt.get();
+
+    gCost += parent.gCost;
+    this.gCost = gCost;
+
+    totalCost = hCost + gCost;
   }
 
   public void generateCostsForNode(

@@ -81,6 +81,15 @@ public class CacheManager {
   }
 
   public CacheState getBlockInfoCached(int xPos, int yPos, int zPos) {
+    /*ChatUtil.sendChat(
+      String.valueOf(getCachedChunk(xPos, zPos) == null) +
+      xPos +
+      " " +
+      yPos +
+      " " +
+      zPos
+    );*/
+
     return getCachedChunk(xPos, zPos).isBlockSolidInChunk(xPos, yPos, zPos);
   }
 

@@ -55,6 +55,7 @@ public class BlockUtil {
   public static boolean isBlockSolid(BlockPos block) {
     //RenderUtil.addBlockToRenderSync(new BlockPos(n.x, n.y, n.z));
     //ChatUtil.sendChat("!!!");
+
     CacheState res = ForgeFinder.CACHE_MANAGER.getBlockInfoCached(
       block.getX(),
       block.getY(),
@@ -236,6 +237,13 @@ public class BlockUtil {
     );
   }
 
+  public static boolean isOnSide(BlockPos block1, BlockPos block2) {
+    return (
+      MathUtil.absAbsSubtract(block1.getX(), block2.getX()) >= 1 &&
+      MathUtil.absAbsSubtract(block1.getZ(), block2.getZ()) >= 1
+    );
+  }
+
   public static boolean isClearOnSides(int[] bp1, int[] bp2) {
     double changeX = bp2[0] - bp1[0];
     double changeZ = bp2[2] - bp1[2];
@@ -248,6 +256,54 @@ public class BlockUtil {
       !BlockUtil.isBlockSolid(blockPos.add(0, 1, changeZ)) &&
       !BlockUtil.isBlockSolid(blockPos.add(changeX, 1, 0))
     );
+  }
+
+  public static BlockPos[] getBlocksOnSides(int[] bp1, int[] bp2) {
+    double changeX = bp2[0] - bp1[0];
+    double changeZ = bp2[2] - bp1[2];
+
+    BlockPos blockPos = new BlockPos(bp1[0], bp1[1], bp1[2]);
+    return new BlockPos[] {
+      blockPos.add(0, 0, changeZ),
+      blockPos.add(changeX, 0, 0),
+      blockPos.add(0, 1, changeZ),
+      blockPos.add(changeX, 1, 0),
+    };
+  }
+
+  public static List<BlockPos> getBlocksOnSidesSolid(
+    BlockPos blockPos,
+    BlockPos bp2
+  ) {
+    double changeX = bp2.getX() - blockPos.getX();
+    double changeZ = bp2.getZ() - blockPos.getZ();
+
+    List<BlockPos> blocks = new ArrayList<>();
+    BlockPos[] blocksRaw = new BlockPos[] {
+      blockPos.add(0, 0, changeZ),
+      blockPos.add(changeX, 0, 0),
+      blockPos.add(0, 1, changeZ),
+      blockPos.add(changeX, 1, 0),
+    };
+
+    if (BlockUtil.isBlockSolid(blocksRaw[0])) {
+      blocks.add(blocksRaw[0]);
+    }
+
+    //ChatUtil.sendChat("?????");
+    if (BlockUtil.isBlockSolid(blocksRaw[1])) {
+      blocks.add(blocksRaw[1]);
+    }
+
+    if (BlockUtil.isBlockSolid(blocksRaw[2])) {
+      blocks.add(blocksRaw[2]);
+    }
+
+    if (BlockUtil.isBlockSolid(blocksRaw[3])) {
+      blocks.add(blocksRaw[3]);
+    }
+
+    return blocks;
   }
 
   public static String blockToString(Block block) {

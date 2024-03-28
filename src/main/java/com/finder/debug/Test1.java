@@ -88,7 +88,7 @@ public class Test1 {
                 nodesConsidered +
                 "ms."
               );
-              executer.runWithDifList(path, true);
+              //executer.runWithDifList(path, true);
             }
 
             @Override
@@ -101,7 +101,8 @@ public class Test1 {
 
             @Override
             public void finderError() {}
-          }
+          },
+          true
         ),
         true
       );
