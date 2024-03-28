@@ -4,7 +4,6 @@ import static com.finder.util.BlockUtil.isBlockAir;
 
 import com.finder.ForgeFinder;
 import com.finder.calculator.util.BetterBlockPos;
-import com.finder.util.ChatUtil;
 import com.finder.util.ChunkPosInt;
 import com.finder.util.MathUtil;
 import java.util.*;
@@ -51,7 +50,12 @@ public class ChunkCachefier extends Thread {
     while (true) {
       if (chunksWorkLoad.isEmpty()) {
         if (!blocksToCacheLater.isEmpty()) {
-          for (BetterBlockPos block : blocksToCacheLater) {
+          HashSet<BetterBlockPos> tmpBlocksToCache;
+          synchronized (blocksToCacheLater) {
+            tmpBlocksToCache = new HashSet<>(blocksToCacheLater);
+          }
+
+          for (BetterBlockPos block : tmpBlocksToCache) {
             int chunkX = block.x >> 4;
             int chunkZ = block.z >> 4;
 
@@ -67,21 +71,10 @@ public class ChunkCachefier extends Thread {
                   )
                 );
             }
-
-            ChatUtil.sendChat(
-              "Caching Block: " +
-              block +
-              " value: " +
-              !isBlockAir(
-                ForgeFinder.MC.theWorld
-                  .getBlockState(new BlockPos(block.x, block.y, block.z))
-                  .getBlock()
-              )
-            );
           }
 
           synchronized (blocksToCacheLater) {
-            blocksToCacheLater.clear();
+            blocksToCacheLater.removeAll(tmpBlocksToCache);
           }
           //blocksToCacheLater.clear();
         }

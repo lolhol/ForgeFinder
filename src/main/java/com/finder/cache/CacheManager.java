@@ -2,6 +2,8 @@ package com.finder.cache;
 
 import com.finder.ForgeFinder;
 import com.finder.cache.util.CacheState;
+import com.finder.calculator.util.BetterBlockPos;
+import com.finder.events.BlockChangeEvent;
 import com.finder.events.ChunkLoadEvent;
 import com.finder.util.ChunkPosInt;
 import java.util.*;
@@ -25,7 +27,7 @@ public class CacheManager {
     this.isCaching = startCaching;
   }
 
-  /*@SubscribeEvent
+  @SubscribeEvent
   public void onBlockChangeEvent(BlockChangeEvent event) {
     if (
       chunkCachefierThread != null &&
@@ -34,7 +36,7 @@ public class CacheManager {
     ) {
       chunkCachefierThread.addBlockToCacheLater(new BetterBlockPos(event.pos));
     }
-  }*/
+  }
 
   @SubscribeEvent
   public void onChunkLoad(ChunkLoadEvent event) {
