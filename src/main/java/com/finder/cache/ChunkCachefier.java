@@ -4,6 +4,7 @@ import static com.finder.util.BlockUtil.isBlockAir;
 
 import com.finder.ForgeFinder;
 import com.finder.calculator.util.BetterBlockPos;
+import com.finder.util.ChatUtil;
 import com.finder.util.ChunkPosInt;
 import com.finder.util.MathUtil;
 import java.util.*;
@@ -49,60 +50,46 @@ public class ChunkCachefier extends Thread {
   public void run() {
     while (true) {
       if (chunksWorkLoad.isEmpty()) {
-        synchronized (blocksToCacheLater) {
-          if (!blocksToCacheLater.isEmpty()) {
-            for (BetterBlockPos block : blocksToCacheLater) {
-              int chunkX = block.x >> 4;
-              int chunkZ = block.z >> 4;
+        if (!blocksToCacheLater.isEmpty()) {
+          for (BetterBlockPos block : blocksToCacheLater) {
+            int chunkX = block.x >> 4;
+            int chunkZ = block.z >> 4;
 
-              if (
-                cachedChunksMap.containsKey(new ChunkPosInt(chunkX, chunkZ))
-              ) {
-                cachedChunksMap
-                  .get(new ChunkPosInt(chunkX, chunkZ))
-                  .setBlockState(
-                    new BetterBlockPos(block.x, block.y, block.z),
-                    !isBlockAir(
-                      ForgeFinder.MC.theWorld
-                        .getBlockState(new BlockPos(block.x, block.y, block.z))
-                        .getBlock()
-                    )
-                  );
-                /*ChatUtil.sendChat(
-                  "Cached block at " +
-                  block.x +
-                  ", " +
-                  block.y +
-                  ", " +
-                  block.z +
-                  " in chunk " +
-                  chunkX +
-                  ", " +
-                  chunkZ +
-                  " set value to " +
+            if (cachedChunksMap.containsKey(new ChunkPosInt(chunkX, chunkZ))) {
+              cachedChunksMap
+                .get(new ChunkPosInt(chunkX, chunkZ))
+                .setBlockState(
+                  new BetterBlockPos(block.x, block.y, block.z),
                   !isBlockAir(
                     ForgeFinder.MC.theWorld
                       .getBlockState(new BlockPos(block.x, block.y, block.z))
                       .getBlock()
                   )
-                );*/
-                /*ChatUtil.sendChat(
-                "Actual " +
-                cachedChunksMap
-                  .get(new ChunkPosInt(chunkX, chunkZ))
-                  .isBlockSolidInChunk(block.x, block.y, block.z)
-              );*/
-              }
+                );
             }
 
-            blocksToCacheLater.clear();
-          } else {
-            try {
-              Thread.sleep(500);
-            } catch (InterruptedException e) {
-              throw new RuntimeException(e);
-            }
+            ChatUtil.sendChat(
+              "Caching Block: " +
+              block +
+              " value: " +
+              !isBlockAir(
+                ForgeFinder.MC.theWorld
+                  .getBlockState(new BlockPos(block.x, block.y, block.z))
+                  .getBlock()
+              )
+            );
           }
+
+          synchronized (blocksToCacheLater) {
+            blocksToCacheLater.clear();
+          }
+          //blocksToCacheLater.clear();
+        }
+
+        try {
+          Thread.sleep(500);
+        } catch (InterruptedException e) {
+          throw new RuntimeException(e);
         }
 
         continue;

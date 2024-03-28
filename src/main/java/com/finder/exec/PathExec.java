@@ -46,6 +46,18 @@ public class PathExec {
       ForgeFinder.MC.thePlayer.getPositionVector(),
       curVecGoing
     );
+
+    RotationUtils.smoothLook(
+      RotationUtils.getRotation(
+        new Vec3(
+          curVecGoing.xCoord,
+          ForgeFinder.MC.thePlayer.posY + ForgeFinder.MC.thePlayer.eyeHeight,
+          curVecGoing.zCoord
+        )
+      ),
+      1
+    );
+
     if (dist <= 0.5) {
       if (blocksOnPath.isEmpty()) {
         isOnline = false;
@@ -68,17 +80,6 @@ public class PathExec {
 
       return;
     }
-
-    RotationUtils.smoothLook(
-      RotationUtils.getRotation(
-        new Vec3(
-          curVecGoing.xCoord,
-          ForgeFinder.MC.thePlayer.posY + ForgeFinder.MC.thePlayer.eyeHeight,
-          curVecGoing.zCoord
-        )
-      ),
-      200
-    );
 
     HashSet<KeyBinding> neededKeyPresses = KeyBindHandler.getNeededKeyPresses(
       ForgeFinder.MC.thePlayer.getPositionVector(),
