@@ -91,53 +91,69 @@ public class AStarPathfinder {
         for (BetterBlockPos n : best.genNodePosAround()) {
           if (setManager.isClosedNode(n) || setManager.isOpenNode(n)) continue;
 
-          List<List<BlockPos>> interactions =
-            NodeUtil.getBlocksWithInteractions(
+          // NOTE: I the process of calc for mining and just walking without mining is very different in terms of calculations (i think)
+          // The mining calc is much slower. Thus, instead of running it every time, we only run it when mine mode is
+          // selected
+          if (!config.canMineBlocks) {
+            boolean[] interactions = NodeUtil.isAbleToInteract(
               new int[] { n.x, n.y, n.z },
               best
             );
 
-          if (
-            interactions.get(0) == null &&
-            interactions.get(1) == null &&
-            interactions.get(2) == null
-          ) continue;
-
-          if (!config.canMineBlocks) {
             if (
-              (!interactions.get(0).isEmpty()) &&
-              (!interactions.get(1).isEmpty()) &&
-              (!interactions.get(2).isEmpty())
-            ) {
-              continue;
-            }
-          } else {
-            if (
-              interactions.get(0).isEmpty() &&
-              interactions.get(1).isEmpty() &&
-              interactions.get(2).isEmpty()
+              !interactions[0] && !interactions[1] && !interactions[2]
             ) continue;
+
+            Node node = new Node(0, best, n);
+            node.generateCostsForNode(
+              endBP,
+              interactions,
+              config.blocksPerSecond
+            );
+
+            if (config.costs != null) {
+              Triple<Double, Double, Double> costs = config.costs.addCost(node);
+              node.totalCost +=
+                costs.getRight() + costs.getLeft() + costs.getMiddle();
+            }
+
+            openSet.add(node);
+          } else {
+            List<List<BlockPos>> interactions =
+              NodeUtil.getBlocksWithInteractions(
+                new int[] { n.x, n.y, n.z },
+                best
+              );
+
+            //ChatUtil.sendChat(interactions);
+
+            if (
+              interactions.get(0) == null &&
+              interactions.get(1) == null &&
+              interactions.get(2) == null
+            ) continue;
+
+            //RenderUtil.addBlockToRenderSync(new BlockPos(n.x, n.y, n.z));
+
+            Node node = new Node(0, best, n);
+
+            node.generateCostsForNode(
+              endBP,
+              config.blocksPerSecond,
+              interactions
+            );
+
+            if (config.costs != null) {
+              Triple<Double, Double, Double> costs = config.costs.addCost(node);
+              node.totalCost +=
+                costs.getRight() + costs.getLeft() + costs.getMiddle();
+            }
+
+            openSet.add(node);
           }
 
-          Node node = new Node(0, best, n);
-
-          node.generateCostsForNode(
-            endBP,
-            config.blocksPerSecond,
-            interactions
-          );
-
-          //node.totalCost += best.totalCost;
-
-          if (config.costs != null) {
-            Triple<Double, Double, Double> costs = config.costs.addCost(node);
-            node.totalCost +=
-              costs.getRight() + costs.getLeft() + costs.getMiddle();
-          }
-
-          openSet.add(node);
           setManager.updateOpenState(n, true);
-          //RenderUtil.addBlockToRenderSync(node.getBlockPos());
+          //
           //Thread.sleep(50);
         }
 
@@ -152,6 +168,7 @@ public class AStarPathfinder {
       isDone = true;
     } catch (Exception e) {
       isDone = true;
+      e.printStackTrace();
     }
 
     return null;

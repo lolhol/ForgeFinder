@@ -1,8 +1,10 @@
 package com.finder.calculator.util;
 
+import com.finder.cache.util.CacheState;
 import com.finder.util.BlockUtil;
 import com.finder.util.MathUtil;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import net.minecraft.util.BlockPos;
 
@@ -30,16 +32,27 @@ public class NodeUtil {
     BlockPos bp = new BlockPos(node[0], node[1], node[2]);
     BlockPos parentBP = new BlockPos(parent.x, parent.y, parent.z);
     List<List<BlockPos>> returnList = new ArrayList<>();
-    returnList.add(canWalkOn(parentBP, bp));
-    returnList.add(canJumpOnMining(bp, parentBP));
-    returnList.add(canFallMining(bp, parentBP));
+    returnList.add(canWalkOn(parentBP, bp, parent.blocksNeededToBeMined));
+    returnList.add(canJumpOnMining(bp, parentBP, parent.blocksNeededToBeMined));
+    returnList.add(canFallMining(bp, parentBP, parent.blocksNeededToBeMined));
     return returnList;
   }
 
-  private static List<BlockPos> canWalkOn(BlockPos parent, BlockPos block) {
+  /**
+   * Determines if a block can be walked on based on its position and parent block.
+   *
+   * @param  parent          the parent block
+   * @param  block           the block to check
+   * @param  parentMined     a set of integers representing the parent blocks that have been mined
+   * @return                 a list of BlockPos objects representing the blocks that can be removed
+   */
+  private static List<BlockPos> canWalkOn(
+    BlockPos parent,
+    BlockPos block,
+    HashSet<Integer> parentMined
+  ) {
     double yDif = Math.abs(parent.getY() - block.getY());
 
-    List<BlockPos> blocksToMine = new ArrayList<>();
     BlockPos blockAbove1 = block.add(0, 1, 0);
     BlockPos blockBelow1 = block.add(0, -1, 0);
 
@@ -47,7 +60,16 @@ public class NodeUtil {
     boolean isWalkableSlab =
       (BlockUtil.getBlock(blockBelow1).getRegistryName().contains("slab"));
 
-    if (!isWalkableSlab && !BlockUtil.isBlockSolid(blockBelow1)) {
+    CacheState stateBelow1 = BlockUtil.getCacheState(blockBelow1);
+
+    if (
+      !isWalkableSlab &&
+      (
+        stateBelow1 == CacheState.UNOBSTRUCTED ||
+        stateBelow1 == CacheState.NOT_SOLID_NOT_AIR ||
+        parentMined.contains(BlockUtil.getHashCode(blockBelow1))
+      )
+    ) {
       return null;
     }
 
@@ -75,20 +97,38 @@ public class NodeUtil {
       }
     }
 
-    if (BlockUtil.isBlockSolid(blockAbove1)) {
+    CacheState blockAboveOneCacheState = BlockUtil.getCacheState(blockAbove1);
+    if (blockAboveOneCacheState == CacheState.NOT_SOLID_NOT_AIR) {
+      return null;
+    }
+
+    if (blockAboveOneCacheState == CacheState.OBSTRUCTED) {
       blocksToRem.add(blockAbove1);
     }
 
-    if (BlockUtil.isBlockSolid(block)) {
+    CacheState curBlockCacheState = BlockUtil.getCacheState(block);
+
+    if (curBlockCacheState == CacheState.NOT_SOLID_NOT_AIR) return null;
+
+    if (curBlockCacheState == CacheState.OBSTRUCTED) {
       blocksToRem.add(block);
     }
 
-    return blocksToMine;
+    return blocksToRem;
   }
 
+  /**
+   * Checks if the given block can be mined based on its position relative to the parent block and the set of already mined blocks.
+   *
+   * @param  block            the block to check for mining
+   * @param  parentBlock      the parent block of the given block
+   * @param  parentMined      the set of already mined blocks
+   * @return                  a list of blocks to remove if the given block can be mined, otherwise null
+   */
   private static List<BlockPos> canJumpOnMining(
     BlockPos block,
-    BlockPos parentBlock
+    BlockPos parentBlock,
+    HashSet<Integer> parentMined
   ) {
     double yDiff = block.getY() - parentBlock.getY();
 
@@ -97,28 +137,57 @@ public class NodeUtil {
     }
 
     BlockPos blockBelow1 = block.add(0, -1, 0);
-    if (!BlockUtil.isBlockSolid(blockBelow1)) {
+    CacheState blockBelow1CacheState = BlockUtil.getCacheState(blockBelow1);
+    if (
+      blockBelow1CacheState == CacheState.UNOBSTRUCTED ||
+      blockBelow1CacheState == CacheState.NOT_SOLID_NOT_AIR ||
+      parentMined.contains(BlockUtil.getHashCode(blockBelow1))
+    ) {
       return null;
     }
 
     List<BlockPos> blocksToRemove = new ArrayList<>();
 
     BlockPos blockAbove1 = block.add(0, 1, 0);
-    if (BlockUtil.isBlockSolid(blockAbove1)) {
+    CacheState blockAbove1CacheState = BlockUtil.getCacheState(blockAbove1);
+
+    if (blockAbove1CacheState == CacheState.NOT_SOLID_NOT_AIR) return null;
+
+    if (blockAbove1CacheState == CacheState.OBSTRUCTED) {
       blocksToRemove.add(blockAbove1);
     }
 
-    if (BlockUtil.isBlockSolid(block)) {
+    CacheState curBlockCacheState = BlockUtil.getCacheState(block);
+
+    if (curBlockCacheState == CacheState.NOT_SOLID_NOT_AIR) return null;
+
+    if (curBlockCacheState == CacheState.OBSTRUCTED) {
       blocksToRemove.add(block);
     }
 
     BlockPos blockAboveOneParent = parentBlock.add(0, 1, 0);
-    if (BlockUtil.isBlockSolid(blockAboveOneParent)) {
+
+    CacheState blockAboveParentCacheState = BlockUtil.getCacheState(
+      blockAboveOneParent
+    );
+
+    if (blockAboveParentCacheState == CacheState.NOT_SOLID_NOT_AIR) return null;
+
+    if (blockAboveParentCacheState == CacheState.OBSTRUCTED) {
       blocksToRemove.add(blockAboveOneParent);
     }
 
     BlockPos blockAboveTwoParent = parentBlock.add(0, 2, 0);
-    if (BlockUtil.isBlockSolid(blockAboveTwoParent)) {
+
+    CacheState blockAboveTwoParentCacheState = BlockUtil.getCacheState(
+      blockAboveTwoParent
+    );
+
+    if (
+      blockAboveTwoParentCacheState == CacheState.NOT_SOLID_NOT_AIR
+    ) return null;
+
+    if (blockAboveTwoParentCacheState == CacheState.OBSTRUCTED) {
       blocksToRemove.add(blockAboveTwoParent);
     }
 
@@ -137,19 +206,31 @@ public class NodeUtil {
 
   private static List<BlockPos> canFallMining(
     BlockPos block,
-    BlockPos parentBlock
+    BlockPos parentBlock,
+    HashSet<Integer> parentMined
   ) {
     double yDiff = block.getY() - parentBlock.getY();
 
     BlockPos blockBelow1 = block.add(0, -1, 0);
-    if (yDiff > -1 || !BlockUtil.isBlockSolid(blockBelow1)) {
+    CacheState blockBelowCacheState = BlockUtil.getCacheState(blockBelow1);
+    if (
+      yDiff > -1 ||
+      blockBelowCacheState == CacheState.UNOBSTRUCTED ||
+      blockBelowCacheState == CacheState.NOT_SOLID_NOT_AIR ||
+      parentMined.contains(BlockUtil.getHashCode(blockBelow1))
+    ) {
       return null;
     }
 
     List<BlockPos> blocksToRemove = new ArrayList<>();
 
     BlockPos blockAbove1 = block.add(0, Math.abs(yDiff) + 1, 0);
-    if (BlockUtil.isBlockSolid(blockAbove1)) {
+
+    CacheState blockAbove1CacheState = BlockUtil.getCacheState(blockAbove1);
+
+    if (blockAbove1CacheState == CacheState.NOT_SOLID_NOT_AIR) return null;
+
+    if (blockAbove1CacheState == CacheState.OBSTRUCTED) {
       blocksToRemove.add(blockAbove1);
     }
 
@@ -165,7 +246,11 @@ public class NodeUtil {
 
     for (int y = 0; y < blockAbove1.getY() - block.getY(); y++) {
       BlockPos curBlock = block.add(0, y, 0);
-      if (BlockUtil.isBlockSolid(curBlock)) {
+      CacheState cacheState = BlockUtil.getCacheState(curBlock);
+
+      if (cacheState == CacheState.NOT_SOLID_NOT_AIR) return null;
+
+      if (cacheState == CacheState.OBSTRUCTED) {
         blocksToRemove.add(curBlock);
       }
     }
@@ -190,10 +275,18 @@ public class NodeUtil {
         BlockUtil.isOnSide(blockParent[0], blockParent[1])
       );
 
+    CacheState blockAbove1State = BlockUtil.getCacheState(blockAbove1);
+    CacheState blockBelow1State = BlockUtil.getCacheState(blockBelow1);
+
+    if (
+      blockAbove1State == CacheState.NOT_SOLID_NOT_AIR ||
+      blockBelow1State == CacheState.NOT_SOLID_NOT_AIR
+    ) return false;
+
     if (
       yDif <= 0.1 &&
-      !BlockUtil.isBlockSolid(blockAbove1) &&
-      BlockUtil.isBlockSolid(blockBelow1) &&
+      blockAbove1State == CacheState.UNOBSTRUCTED &&
+      blockBelow1State == CacheState.OBSTRUCTED &&
       ((BlockUtil.isBlockWalkable(block) || isWalkableSlab))
     ) {
       if (!BlockUtil.isOnSide(blockParent[0], blockParent[1])) {
@@ -215,13 +308,31 @@ public class NodeUtil {
     BlockPos blockAboveOneParent = parentBlock.add(0, 1, 0);
     BlockPos blockAboveTwoParent = parentBlock.add(0, 2, 0);
 
+    CacheState blockAbove1State = BlockUtil.getCacheState(blockAbove1);
+    if (blockAbove1State == CacheState.NOT_SOLID_NOT_AIR) return false;
+
+    CacheState blockBelow1CacheState = BlockUtil.getCacheState(blockBelow1);
+    if (blockBelow1CacheState == CacheState.NOT_SOLID_NOT_AIR) return false;
+
+    CacheState blockAboveOneParentState = BlockUtil.getCacheState(
+      blockAboveOneParent
+    );
+    if (blockAboveOneParentState == CacheState.NOT_SOLID_NOT_AIR) return false;
+
+    CacheState blockAboveTwoParentState = BlockUtil.getCacheState(
+      blockAboveTwoParent
+    );
+    if (blockAboveTwoParentState == CacheState.NOT_SOLID_NOT_AIR) return false;
+
+    CacheState blockCache = BlockUtil.getCacheState(block);
+
     if (
       yDiff == 1 &&
-      BlockUtil.isBlockSolid(blockBelow1) &&
-      !BlockUtil.isBlockSolid(blockAbove1) &&
-      !BlockUtil.isBlockSolid(blockAboveOneParent) &&
-      !BlockUtil.isBlockSolid(blockAboveTwoParent) &&
-      BlockUtil.isBlockWalkable(block)
+      blockAbove1State == CacheState.UNOBSTRUCTED &&
+      blockBelow1CacheState == CacheState.OBSTRUCTED &&
+      blockAboveOneParentState == CacheState.UNOBSTRUCTED &&
+      blockAboveTwoParentState == CacheState.UNOBSTRUCTED &&
+      blockCache == CacheState.OBSTRUCTED
     ) {
       if (MathUtil.distanceFromToXZ(block, parentBlock) <= 1) {
         return true;
@@ -234,45 +345,6 @@ public class NodeUtil {
     }
 
     return false;
-  }
-
-  /**
-   * @apiNote this MUST be used for only JUMPING and WALKING!
-   * @param block
-   * @param parent
-   * @return
-   */
-  public static List<BlockPos> getBlocksNeededToMineToGetTo(
-    BlockPos block,
-    BlockPos parent
-  ) {
-    List<BlockPos> blocksNeededToBeRemoved = new ArrayList<>();
-    BlockPos blockAbove1 = block.add(0, 1, 0);
-    boolean isNotOnSide = MathUtil.distanceFromToXZ(block, parent) <= 1;
-    if (isNotOnSide) {
-      if (BlockUtil.isBlockSolid(blockAbove1)) {
-        blocksNeededToBeRemoved.add(blockAbove1);
-      }
-
-      if (BlockUtil.isBlockSolid(block)) {
-        blocksNeededToBeRemoved.add(block);
-      }
-
-      return blocksNeededToBeRemoved;
-    }
-
-    List<BlockPos> blocksOnSides = BlockUtil.getBlocksOnSidesSolid(
-      block,
-      parent
-    );
-
-    if (blocksOnSides.isEmpty()) {
-      return blocksNeededToBeRemoved;
-    } else {
-      blocksNeededToBeRemoved.addAll(blocksOnSides);
-    }
-
-    return blocksNeededToBeRemoved;
   }
 
   private static boolean canFall(BlockPos block, BlockPos parentBlock) {
@@ -281,11 +353,14 @@ public class NodeUtil {
     BlockPos blockBelow1 = block.add(0, -1, 0);
     BlockPos blockAbove1 = block.add(0, Math.abs(yDiff) + 1, 0);
 
+    CacheState blockBelow1State = BlockUtil.getCacheState(blockBelow1);
+    CacheState blockAbove1State = BlockUtil.getCacheState(blockAbove1);
+
     if (
       yDiff < 0 &&
       yDiff > -4 &&
-      BlockUtil.isBlockSolid(blockBelow1) &&
-      !BlockUtil.isBlockSolid(blockAbove1) &&
+      blockBelow1State == CacheState.OBSTRUCTED &&
+      blockAbove1State == CacheState.UNOBSTRUCTED &&
       BlockUtil.isBlockWalkable(block)
     ) {
       if (MathUtil.distanceFromToXZ(block, parentBlock) <= 1) {
@@ -299,20 +374,5 @@ public class NodeUtil {
     }
 
     return false;
-  }
-
-  private boolean isAllClearToY(int y1, int y2, BlockPos block) {
-    boolean isGreater = y1 < y2;
-    int rem = 0;
-
-    while (y1 != y2) {
-      BlockPos curBlock = block.add(0, rem, 0);
-
-      if (!BlockUtil.isBlockSolid(curBlock)) return false;
-      y2--;
-      rem--;
-    }
-
-    return true;
   }
 }

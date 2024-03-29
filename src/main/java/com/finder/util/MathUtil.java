@@ -1,5 +1,6 @@
 package com.finder.util;
 
+import com.finder.calculator.util.Node;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.Vec3;
 
@@ -75,6 +76,22 @@ public class MathUtil {
 
   public static int getPositionChunk(int pos) {
     return pos >> 4;
+  }
+
+  public static double calculateAngle(Node point1, Node point2, Node point3) {
+    double vec1x = point2.x - point1.x;
+    double vec1y = point2.z - point1.z;
+    double vec2x = point3.x - point2.x;
+    double vec2y = point3.z - point2.z;
+
+    double dotProduct = vec1x * vec2x + vec1y * vec2y;
+
+    double magnitudeVec1 = Math.sqrt(vec1x * vec1x + vec1y * vec1y);
+    double magnitudeVec2 = Math.sqrt(vec2x * vec2x + vec2y * vec2y);
+
+    double angleRad = Math.acos(dotProduct / (magnitudeVec1 * magnitudeVec2));
+
+    return Math.toDegrees(angleRad);
   }
 
   public static int getPositionIndex3DList(

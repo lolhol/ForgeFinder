@@ -52,7 +52,7 @@ public class BlockUtil {
     return vecs;
   }
 
-  public static boolean isBlockSolid(BlockPos block) {
+  /*public static boolean isBlockSolid(BlockPos block) {
     //RenderUtil.addBlockToRenderSync(new BlockPos(n.x, n.y, n.z));
     //ChatUtil.sendChat("!!!");
 
@@ -73,7 +73,39 @@ public class BlockUtil {
       blockType != Blocks.yellow_flower &&
       blockType != Blocks.double_plant &&
       blockType != Blocks.flowing_water
-    );*/
+    );
+  }*/
+
+  public static boolean isBlockSolid(BlockPos block) {
+    CacheState res = ForgeFinder.CACHE_MANAGER.getBlockInfoCached(
+      block.getX(),
+      block.getY(),
+      block.getZ()
+    );
+
+    return res == CacheState.OBSTRUCTED;
+  }
+
+  public static boolean isBlockSolidLocal(BlockPos block) {
+    Block blockType = getBlock(block);
+    return (
+      blockType != Blocks.water &&
+      blockType != Blocks.lava &&
+      blockType != Blocks.air &&
+      blockType != Blocks.red_flower &&
+      blockType != Blocks.tallgrass &&
+      blockType != Blocks.yellow_flower &&
+      blockType != Blocks.double_plant &&
+      blockType != Blocks.flowing_water
+    );
+  }
+
+  public static CacheState getCacheState(BlockPos block) {
+    return ForgeFinder.CACHE_MANAGER.getBlockInfoCached(
+      block.getX(),
+      block.getY(),
+      block.getZ()
+    );
   }
 
   public static boolean isBlockWalkable(BlockPos block) {
@@ -82,7 +114,7 @@ public class BlockUtil {
       block.getY(),
       block.getZ()
     );
-    return state == CacheState.EXISTS_NO;
+    return state == CacheState.UNOBSTRUCTED;
     /*Block blockType = getBlock(block);
     return (
       blockType == Blocks.air ||
@@ -319,5 +351,13 @@ public class BlockUtil {
       blockType == Blocks.double_plant ||
       blockType == Blocks.flowing_water
     );
+  }
+
+  public static Integer getHashCode(BlockPos bp) {
+    int result = 17;
+    result = 31 * result + bp.getX();
+    result = 31 * result + bp.getY();
+    result = 31 * result + bp.getZ();
+    return result;
   }
 }

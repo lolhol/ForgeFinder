@@ -84,8 +84,8 @@ public class CachedChunk {
     }
 
     return blockDataFlat.get(position)
-      ? CacheState.EXISTS_YES
-      : CacheState.EXISTS_NO;
+      ? CacheState.OBSTRUCTED
+      : CacheState.UNOBSTRUCTED;
   }
 
   public boolean getBlockStateChunk(BetterBlockPos blockPosition) {

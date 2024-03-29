@@ -61,7 +61,7 @@ public class Test1 {
         new Config(
           ForgeFinder.MC.thePlayer.getPositionVector(),
           new Vec3(ints.get(1), ints.get(2), ints.get(3)),
-          100000,
+          1000000,
           5,
           new Callback() {
             @Override
@@ -88,7 +88,7 @@ public class Test1 {
                 nodesConsidered +
                 "ms."
               );
-              //executer.runWithDifList(path, true);
+              executer.runWithDifList(path, true);
             }
 
             @Override
@@ -108,8 +108,5 @@ public class Test1 {
       );
     }
   }
-  //./makePath -196 64 304
-  // pc:
-  //
-  //./makePath -75 65 296
+  //./makePath 312 64 691
 }

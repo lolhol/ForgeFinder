@@ -2,10 +2,7 @@ package com.finder.exec;
 
 import com.finder.ForgeFinder;
 import com.finder.calculator.util.Node;
-import com.finder.util.ChatUtil;
-import com.finder.util.KeyBindHandler;
-import com.finder.util.MathUtil;
-import com.finder.util.RotationUtils;
+import com.finder.util.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -20,7 +17,17 @@ public class PathExec {
   boolean isOnline = false;
   List<BlockPos> blocksOnPath = new ArrayList<>();
   Vec3 curVecGoing = null;
+  Node curNodeGoing = null;
+  List<Node> nodes = new ArrayList<>();
   int jumpPresses = 0;
+
+  long lastJump = System.currentTimeMillis();
+
+  boolean stopForBreaking;
+  BlockPos blockToBreak = null;
+  boolean rotated;
+  boolean finishedRotation;
+  int holdingTicks = 0;
 
   public void run(List<BlockPos> blocksOnPath, boolean state) {
     this.blocksOnPath = blocksOnPath;
@@ -37,6 +44,9 @@ public class PathExec {
     this.curVecGoing =
       new Vec3(first.getX() + 0.5, first.getY(), first.getZ() + 0.5);
     isOnline = state;
+
+    this.nodes = blocksOnPath;
+    this.curNodeGoing = blocksOnPath.get(0);
   }
 
   @SubscribeEvent
@@ -46,6 +56,35 @@ public class PathExec {
       ForgeFinder.MC.thePlayer.getPositionVector(),
       curVecGoing
     );
+
+    if (!curNodeGoing.blocksToBreakForNode.isEmpty() && dist < 1.5) {
+      KeyBindHandler.resetKeybindState();
+      stopForBreaking = true;
+      blockToBreak = curNodeGoing.blocksToBreakForNode.get(0);
+      if (RotationUtils.done && !rotated) {
+        RotationUtils.smoothLook(RotationUtils.getRotation(blockToBreak), 200);
+        rotated = true;
+        finishedRotation = true;
+      }
+
+      if (BlockUtil.isBlockSolidLocal(blockToBreak)) {
+        if (finishedRotation) {
+          KeyBindHandler.holdLeftClick();
+        }
+
+        rotated = false;
+      } else {
+        curNodeGoing.blocksToBreakForNode.remove(0);
+        rotated = false;
+        stopForBreaking = false;
+        KeyBindHandler.releaseLeftClick();
+        finishedRotation = false;
+      }
+    } else {
+      stopForBreaking = false;
+    }
+
+    if (stopForBreaking) return;
 
     RotationUtils.smoothLook(
       RotationUtils.getRotation(
@@ -74,8 +113,10 @@ public class PathExec {
         ChatUtil.sendChat("Done with path!");
       } else {
         BlockPos block = blocksOnPath.remove(0);
+        Node n = nodes.remove(0);
         this.curVecGoing =
           new Vec3(block.getX() + 0.5, block.getY(), block.getZ() + 0.5);
+        this.curNodeGoing = n;
       }
 
       return;
@@ -92,12 +133,25 @@ public class PathExec {
 
     ForgeFinder.MC.thePlayer.setSprinting(true);
 
-    KeyBinding.setKeyBindState(
-      ForgeFinder.MC.gameSettings.keyBindJump.getKeyCode(),
+    if (
+      System.currentTimeMillis() - lastJump > 400 &&
       ForgeFinder.MC.thePlayer.getPositionVector().yCoord <
       curVecGoing.yCoord &&
-      dist < 1.5 &&
-      ForgeFinder.MC.thePlayer.onGround
-    );
+      dist < 2
+    ) {
+      if (ForgeFinder.MC.thePlayer.onGround) {
+        KeyBinding.setKeyBindState(
+          ForgeFinder.MC.gameSettings.keyBindJump.getKeyCode(),
+          true
+        );
+      } else {
+        KeyBinding.setKeyBindState(
+          ForgeFinder.MC.gameSettings.keyBindJump.getKeyCode(),
+          false
+        );
+
+        lastJump = System.currentTimeMillis();
+      }
+    }
   }
 }

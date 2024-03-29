@@ -5,6 +5,7 @@ import com.finder.util.BlockUtil;
 import com.finder.util.MathUtil;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import net.minecraft.util.BlockPos;
@@ -20,8 +21,8 @@ public class Node implements Comparable<Node> {
 
   // gCost and hCost are in milliseconds
   public double totalCost;
-  public boolean isSlab = false;
-  public List<BlockPos> blocksNeededToBeMined;
+  public HashSet<Integer> blocksNeededToBeMined = new HashSet<>();
+  public List<BlockPos> blocksToBreakForNode = new ArrayList<>();
   public double gCost = 0;
 
   public Node(double totalCost, Node parent, BlockPos bp) {
@@ -103,6 +104,11 @@ public class Node implements Comparable<Node> {
     double distanceEnd = MathUtil.distanceFromTo(x, y, z, endBlock);
     double gCost = 0;
 
+    if (parent != null && parent.parent != null) {
+      double angle = MathUtil.calculateAngle(parent.parent, parent, this);
+      gCost += angle;
+    }
+
     if (blocksPerSecond != 0) {
       distanceEnd = distanceEnd / blocksPerSecond * 1000;
     }
@@ -132,7 +138,11 @@ public class Node implements Comparable<Node> {
     for (BlockPos block : blocksNeededToBeBroken.get(posChosen)) {
       // TODO: fix @this
       gCost += 1000;
+      this.blocksToBreakForNode.add(block);
+      this.blocksNeededToBeMined.add(BlockUtil.getHashCode(block));
     }
+
+    this.blocksNeededToBeMined.addAll(this.parent.blocksNeededToBeMined);
 
     /*double radius = 1;
 
@@ -163,8 +173,7 @@ public class Node implements Comparable<Node> {
   public void generateCostsForNode(
     BlockPos endBlock,
     boolean[] interactions,
-    double blocksPerSecond,
-    double prevNodeGCost
+    double blocksPerSecond
   ) {
     double distanceEnd = MathUtil.distanceFromTo(x, y, z, endBlock);
     double gCost = 0;
@@ -203,13 +212,14 @@ public class Node implements Comparable<Node> {
 
     AtomicInteger atomInt = new AtomicInteger();
     AtomicInteger underInt = new AtomicInteger();
-    blocksAround.forEach(a -> {
-      if (BlockUtil.isBlockSolid(a) && a.getY() >= y) {
+    /*blocksAround.forEach(a -> {
+      boolean isBlockSolid = BlockUtil.isBlockSolid(a);
+      if (isBlockSolid[0] && !isBlockSolid[1] && a.getY() >= y) {
         atomInt.incrementAndGet();
-      } else if (a.getY() < y && !BlockUtil.isBlockSolid(a)) {
+      } else if (a.getY() < y && !BlockUtil.isBlockSolid(a)[0]) {
         underInt.incrementAndGet();
       }
-    });
+    });*/
 
     //gCost += atomInt.get();
     //gCost += underInt.get();
