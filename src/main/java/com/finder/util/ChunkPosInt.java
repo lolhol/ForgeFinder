@@ -2,7 +2,7 @@ package com.finder.util;
 
 public class ChunkPosInt {
 
-  public final int x, y;
+  public int x, y;
 
   public ChunkPosInt(int x1, int y1) {
     this.x = x1;

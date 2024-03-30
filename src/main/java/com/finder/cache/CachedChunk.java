@@ -2,6 +2,7 @@ package com.finder.cache;
 
 import com.finder.cache.util.CacheState;
 import com.finder.calculator.util.BetterBlockPos;
+import com.finder.util.ChunkPosInt;
 import com.finder.util.MathUtil;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import java.util.BitSet;
@@ -58,6 +59,18 @@ public class CachedChunk {
     } else {
       special = null;
     }
+  }
+
+  public BitSet getBlockDataFlat() {
+    return blockDataFlat;
+  }
+
+  public Int2ObjectOpenHashMap<String> getSpecial() {
+    return special;
+  }
+
+  public ChunkPosInt getChunkPosition() {
+    return new ChunkPosInt(position[0], position[1]);
   }
 
   public CacheState isBlockSolidInChunk(int xChunk, int yChunk, int zChunk) {

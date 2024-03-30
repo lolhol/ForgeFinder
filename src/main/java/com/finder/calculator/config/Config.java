@@ -87,4 +87,24 @@ public class Config {
     this.walkerErrorCoef = blocksPerSecond * blocksPerSecond;
     this.canMineBlocks = canMineBlocks;
   }
+
+  public Config(
+    Vec3 startBlock,
+    Vec3 endBlock,
+    int maxIter,
+    int blocksPerSecond,
+    boolean canMineBlocks
+  ) {
+    double dist = TimeUtil.getTimeReqMS(
+      this.blocksPerSecond,
+      MathUtil.distanceFromTo(startBlock, endBlock)
+    );
+
+    this.start = new Node(dist, null, BlockUtil.fromVecToBP(startBlock));
+    this.end = new Node(dist, null, BlockUtil.fromVecToBP(endBlock));
+    this.maxIter = maxIter;
+    this.blocksPerSecond = blocksPerSecond;
+    this.walkerErrorCoef = blocksPerSecond * blocksPerSecond;
+    this.canMineBlocks = canMineBlocks;
+  }
 }
